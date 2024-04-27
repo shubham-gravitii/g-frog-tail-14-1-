@@ -1,95 +1,44 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+// @ts-nocheck
+// This is a home page (/ route)
 
-export default function Home() {
+import Head from 'next/head';
+import Landing from '../components/Board/Landing';
+import { useAuth } from '../contexts/UserContext';
+import {Col, Container, Row } from "reactstrap"
+
+
+
+//<ConnectionProvider endpoint={network}></ConnectionProvider>
+
+////////
+
+import HomePage from './home-page/index'
+
+
+
+
+
+
+function Home() {
+  // const { currentUser } = useAuth();  
+  const currentUser=null
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    <>
+      <Head>
+        <title>Gravitii</title>
+        <meta name="description" content="Brought to you by team Gravitii" />
+      </Head>
+      {(currentUser && currentUser.userID) ? <div style={{ backgroundImage: `url("https://img.freepik.com/free-vector/warehouse-store-interior-logistics-cargo-goods-delivery-postal-service-storehouse-with-rolling-shatter-gates-racks-with-parcels-boxes-palettes-front-view-cartoon-vector-illustration_107791-9825.jpg?t=st=1708795550~exp=1708799150~hmac=519bd7ab9ec17c8e92f4146d22ae4bf5f78c36d455445f2ca37d12c48166dea7&w=1380")`,
+                      backgroundSize: 'cover',backgroundPosition: 'center', color: '#ffffff'}} className="header__area black-bg py-3"><Landing /></div> : <HomePage />}
+      <Container fluid={true} className="black-bg">
+        <Row>
+          <Col xs="12">
+          </Col>
+        </Row>
+      </Container>
+      {/* <Pagination count={10} /> */}
+    </>
+  )
 }
+
+export default Home;

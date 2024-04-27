@@ -1,0 +1,4074 @@
+"use client"
+// @ts-nocheck
+import { useRouter } from "next/router";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+//new added
+import {
+  Button,
+  Tooltip,
+  Modal,
+  Form,
+  Image,
+  OverlayTrigger,
+} from "react-bootstrap";
+import Select from "react-select";
+
+import "leaflet/dist/leaflet.css";
+
+import MapComponent from "./CityMap";
+
+import ReactLoading from "react-loading";
+
+// import { getFilesFromPath } from 'web3.storage'
+
+import { Marker } from "react-leaflet";
+
+// import { Suspense } from 'react';
+// const MapComponent = React.lazy(() => import('./CityMap'));
+
+// // In your component render method
+// <Suspense fallback={<div>Loading...</div>}>
+//   <MapComponent />
+// </Suspense>
+
+// import Form from "react-bootstrap/Form";
+
+// import { geocode } from "@tomtom-international/web-sdk-services";
+
+import {
+  Card,
+  CardBody,
+  Col,
+  Container,
+  // Form,
+  FormGroup,
+  Input,
+  InputGroup,
+  Label,
+  Row,
+  ModalHeader,
+  ModalBody,
+  Accordion,
+  AccordionBody,
+  AccordionHeader,
+  AccordionItem,
+} from "reactstrap";
+import "@vtaits/react-color-picker/dist/index.css";
+import "react-datepicker/dist/react-datepicker.css";
+
+// import { getFilesFromPath, Web3Storage } from "web3.storage";
+// import fs from "fs";
+
+import { add, min } from "date-fns";
+
+import "flatpickr/dist/themes/material_blue.css";
+import Flatpickr from "react-flatpickr";
+import axios from "axios";
+import { useForm } from "react-hook-form";
+import MetaTags from "react-meta-tags";
+import SolClient from "../Web3Client/SolClient";
+import Success from "../Common/Success";
+import Error from "../Common/Error";
+import initializeHello from "../Home/Header";
+import RateRecords from "../Board/RateRecords";
+import { stringify } from "querystring";
+
+import { useAuth } from "../../contexts/UserContext";
+
+// import addNotification from "react-push-notification";
+
+import { Program, AnchorProvider, web3 } from "@project-serum/anchor";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
+import {
+  WalletModalProvider,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
+import {
+  useWallet,
+  WalletProvider,
+  ConnectionProvider,
+} from "@solana/wallet-adapter-react";
+import { AutoConnectProvider } from "../../components/AutoConnectProvider";
+import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import * as Constants from "../../utils/constants";
+import { UniqueID } from "../../utils/uuidGenerate";
+import { TS } from "../../utils/currentTimestamp";
+import { findDOMNode } from "react-dom";
+
+import { Web3Storage } from "web3.storage";
+import imageCompression from "browser-image-compression";
+
+function getAccessToken() {
+  return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweEQ3ODIxZUVjQTIwYmMxNGVBRjcxNzdBQ2I0OTJFMTQwQTA4MDQzRDQiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2OTA5Njc1OTI2MDQsIm5hbWUiOiJzdG9yaW5nSW1nIn0.RPu3oXrS2-l9DJHLWGdnpGBuV4r1MvMd1MRiiqzKJn4"; // Replace with your actual access token
+}
+
+function makeStorageClient() {
+  return new Web3Storage({ token: getAccessToken() });
+}
+
+async function uploadFile(file) {
+  try {
+    console.log("Uploading file:", file.name);
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+
+    const compressedFile = await imageCompression(file, options);
+    const client = makeStorageClient();
+    const cid = await client.put([compressedFile]);
+    console.log("Uploaded to Web3 Storage:", cid);
+    return cid;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+}
+
+const ImageUploadModal = ({ show, onClose, onLocalUpload }) => {
+  const [selectedImages, setSelectedImages] = useState([]);
+
+  const handleImageChange = (e) => {
+    const files = e.target.files;
+    const newSelectedImages = [...selectedImages];
+    for (const file of files) {
+      newSelectedImages.push(file);
+    }
+    setSelectedImages(newSelectedImages);
+  };
+
+  const handleLocalUpload = async () => {
+    try {
+      const uploadedImages = [];
+      for (const image of selectedImages) {
+        if (image.type.startsWith("image/")) {
+          const localImageUrl = URL.createObjectURL(image);
+          localStorage.setItem(`image_${image.name}`, localImageUrl); // Mark the image entries in localStorage
+          uploadedImages.push(image);
+          console.log("Stored locally:", image.name);
+        } else {
+          console.log("Skipping non-image file:", image.name);
+        }
+      }
+      onLocalUpload(uploadedImages);
+      setSelectedImages([]);
+      onClose();
+    } catch (error) {
+      console.error("Error uploading images locally:", error);
+      alert("Failed to upload images locally.");
+    }
+  };
+
+  return (
+    <Modal show={show} onHide={onClose} size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>Upload Images</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div style={{ display: "flex", flexWrap: "wrap", padding: "10px 0" }}>
+          {selectedImages.map((image, index) => (
+            <Image
+              key={index}
+              src={URL.createObjectURL(image)}
+              alt={`Preview ${index}`}
+              style={{
+                maxWidth: "100px",
+                margin: "7px",
+              }}
+              thumbnail
+            />
+          ))}
+          <Form>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <Form.Control
+                id="imageUpload"
+                type="file"
+                multiple
+                onChange={handleImageChange}
+                style={{ display: "none" }}
+              />
+              <Button
+                variant="primary"
+                onClick={() => document.getElementById("imageUpload").click()}
+                style={{
+                  background: "lightgray",
+                  border: "none",
+                  boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.1)",
+                  width: "80px",
+                  height: "80px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  fontSize: "30px",
+                  cursor: "pointer",
+                }}
+              >
+                +
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+        <Button variant="primary" onClick={handleLocalUpload}>
+          Upload Images
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+const network = clusterApiUrl(Constants.solana_network);
+
+const wallets = [new PhantomWalletAdapter()];
+
+export const opts = {
+  preflightCommitment: "processed",
+};
+
+const NewPost = () => {
+  const wallet = useWallet();
+  const { currentUser, loading } = useAuth();
+
+  const [walletAddress, setWalletAddress] = useState<
+    HTMLInputElement | void | string
+  >("");
+  const [usrRole, setUsrRole] = useState<HTMLInputElement | void | string>("");
+
+  // if (walletAddress == "" || walletAddress == null) {
+  //   async function getWalletAddress() {
+  //     // create the provider and return it to the caller
+  //     const connection = new Connection(network, opts.preflightCommitment);
+  //     const provider = new AnchorProvider(
+  //       connection,
+  //       wallet,
+  //       opts.preflightCommitment
+  //     );
+  //     return await provider.wallet.publicKey;
+  //   }
+  //   const publicKey = getWalletAddress();
+  //   publicKey.then((value) => {
+  //     setWalletAddress(value);
+  //     console.log(walletAddress);
+  //   });
+  // }
+
+  if (usrRole.length == 0 || usrRole == null || usrRole == "") {
+    const headers = {
+      Authorization: "Bearer mytoken",
+      accept: "application/json",
+    };
+
+    axios
+      .get(
+        Constants.api_gateway_host +
+          "/user_profile/?WALLET_ADDRESS=" +
+          walletAddress,
+        { headers }
+      )
+      .then((res) => {
+        if (res.status == 200) {
+          setUsrRole(currentUser.userRole);
+
+          var roleVal = currentUser.userRole;
+
+          console.log("roleVal--->", roleVal);
+
+          setWalletAddress(currentUser.userID);
+
+          setBrokerID("GB-" + walletAddress.toString().substring(0, 26));
+
+          setCarrierID("GC-" + walletAddress.toString().substring(0, 26));
+
+          setMotID(UniqueID(roleVal));
+
+          setIDLoad(UniqueID(roleVal));
+
+          setTimestamp(TS());
+
+          // setOwnerEntityId(UniqueID(roleVal));
+
+          setOwnerEntityId(currentUser.userID.toString().substring(0, 26));
+
+          // setOwnerEntityId(walletAddress.toString().substring(0, 26));
+
+          setOwnerId("GWO-" + currentUser.userID.toString().substring(0, 26));
+
+          setOwnerIdCreatedTimestamp(TS());
+
+          setWhId("GWI-" + walletAddress.toString().substring(0, 26));
+
+          setWhId(UniqueID(roleVal));
+
+          setWhIdCreatedTimestamp(TS());
+
+          setWhRentalID(UniqueID(roleVal));
+
+          setWhRentalCreatedTimestamp(TS());
+
+          setRequirementPostID("GWC-" + UniqueID(roleVal));
+
+          setRequirementIdCreatedTimeStamp(TS());
+
+          setCustomerId(
+            "GCI-" + currentUser.userID.toString().substring(0, 26)
+          );
+
+          setCustomerCreatedTimestamp(TS());
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    //console.log("ID izz--->",ID);
+  }
+  // if (
+  //   (usrRole.length == 0 || usrRole == null || usrRole == "") &&
+  //   walletAddress != "" &&
+  //   walletAddress != null
+  // ) {
+  //   const headers = {
+  //     Authorization: "Bearer mytoken",
+  //     accept: "application/json",
+  //   };
+
+  //   axios
+  //     .get(
+  //       Constants.api_gateway_host +
+  //       "/user_profile/?WALLET_ADDRESS=" +
+  //       walletAddress,
+  //       { headers }
+  //     )
+  //     .then((res) => {
+  //       //console.log(JSON.parse(res.request.response).response[0].user_role)
+  //       //redirect logic
+  //       if (res.status == 200) {
+  //         var roleVal = JSON.parse(res.request.response).response[0].user_role;
+  //         console.log("roleVal--->", roleVal);
+  //         setUsrRole(roleVal);
+
+  //         setBrokerID("GB-" + walletAddress.toString().substring(0, 26));
+  //         setCarrierID("GC-" + walletAddress.toString().substring(0, 26));
+  //         setMotID(UniqueID(roleVal));
+  //         setIDLoad(UniqueID(roleVal));
+  //         setTimestamp(TS());
+  //         setOwnerEntityId(UniqueID(roleVal));
+  //         setOwnerId("GWO-"+walletAddress.toString().substring(0, 26));
+  //         setOwnerIdCreatedTimestamp(TS())
+  //        // setWhId("GWI-"+walletAddress.toString().substring(0, 26));
+  //         setWhId(UniqueID(roleVal));
+  //         setWhIdCreatedTimestamp(TS());
+  //         setWhRentalID(UniqueID(roleVal));
+  //         setWhRentalCreatedTimestamp(TS());
+  //         setRequirementPostID("GWC-" + UniqueID(roleVal));
+  //         setRequirementIdCreatedTimeStamp(TS());
+  //         setCustomerId("GCI-"+walletAddress.toString().substring(0, 26));
+  //         setCustomerCreatedTimestamp(TS());
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  //   //console.log("ID izz--->",ID);
+  // }
+  //console.log("pub key-->", walletAddress);
+  //console.log("Role--->", usrRole);
+  //console.log("ID--->",ID);
+
+  const optionGroup =
+    //['Liquids','Solids','Auto','BorderCrossing']
+    [
+      {
+        options: [
+          { label: "Liquids", value: "Liquids" },
+          { label: "Solids", value: "Solids" },
+          { label: "Auto", value: "Auto" },
+          { label: "BorderCrossing", value: "BorderCrossing" },
+        ],
+      },
+    ];
+
+  const optionSourceGroup = [
+    {
+      label: "Illinois",
+      options: [
+        { label: "Springfield", value: "Springfield" },
+        { label: "Chicago", value: "Chicago" },
+        { label: "Rockford", value: "Rockford" },
+        { label: "Champaign", value: "Champaign" },
+      ],
+    },
+    {
+      label: "Maryland",
+      options: [
+        { label: "Annapolis", value: "Annapolis" },
+        { label: "Baltimore", value: "Baltimore" },
+        { label: "Columbia", value: "Columbia" },
+        { label: "Hanover", value: "Hanover" },
+      ],
+    },
+  ];
+
+  const optionTargetGroup = [
+    {
+      label: "Illinois",
+      options: [
+        { label: "Springfield", value: "Springfield" },
+        { label: "Chicago", value: "Chicago" },
+        { label: "Rockford", value: "Rockford" },
+        { label: "Champaign", value: "Champaign" },
+      ],
+    },
+    {
+      label: "Maryland",
+      options: [
+        { label: "Annapolis", value: "Annapolis" },
+        { label: "Baltimore", value: "Baltimore" },
+        { label: "Columbia", value: "Columbia" },
+        { label: "Hanover", value: "Hanover" },
+      ],
+    },
+  ];
+  const EquipmentGroupname = [
+    {
+      label: "Types",
+      options: [
+        { label: "RefrigeratedTrailers", value: "RefrigeratedTrailers" },
+        { label: "Dryvan", value: "Dryvan" },
+        { label: "BoxTruck", value: "BoxTruck" },
+        { label: "FlatbedTrailer", value: "FlatbedTrailer" },
+        { label: "LowboyTrailer", value: "LowboyTrailer" },
+      ],
+    },
+  ];
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const router = useRouter();
+  const [route, setRoute] = useState();
+  const [selectedSource, setSelectedSource] = useState("");
+  const [ID, setID] = useState("");
+  const [BrokerID, setBrokerID] = useState("");
+  const [CarrierID, setCarrierID] = useState("");
+  const [MotID, setMotID] = useState("");
+  const [Dates, setDates] = useState("");
+  const [Timestamp, setTimestamp] = useState("");
+  const [DeliveryDate, setDeliveryDate] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const [distance, setdistance] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [rate, setRate] = useState("");
+  const [IDName, setIDName] = useState("");
+  const [IDLoad, setIDLoad] = useState("");
+  const [pickupdates, setpickupdates] = useState("");
+  const [delivery, setdelivery] = useState("");
+  const [load, setload] = useState("");
+  const [Distances, setDistances] = useState("");
+  const [weight, setweight] = useState("");
+  const [commodity, setcommodity] = useState("");
+  const [rates, setrates] = useState("");
+  const [addition, setaddition] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
+  const [successFlag, setSuccessFlag] = useState("");
+  const [errorFlag, setErrorFlag] = useState("");
+  // const [data , setDate] =  useState("") ;
+  //const [userRole, setUserRole] = useState("");
+  //new  useStates
+  const [ownerEntityId, setOwnerEntityId] = useState("");
+  const [ownerId, setOwnerId] = useState("");
+  const [ownerIdCreatedTimestamp, setOwnerIdCreatedTimestamp] = useState("");
+  const [ownerFullName, setOwnerFullName] = useState("");
+  const [ownerPhoneNumber, setOwnerPhoneNumber] = useState("");
+  const [ownerEmailId, setOwnerEmailId] = useState("");
+  const [ownerAddress, setOwnerAddress] = useState("");
+  const [ownerIdDocType, setOwnerIdDocType] = useState("");
+  const [ownerIdDocNumber, setOwnerIdDocNumber] = useState("");
+  const [ownerEntityType, setOwnerEntityType] = useState("");
+  const [ownerEntityName, setOwnerEntityName] = useState("");
+  const [ownerEntityRegistrationNumber, setOwnerEntityRegistrationNumber] =
+    useState("");
+  const [ownerEntityRegisteredAddress, setOwnerEntityRegisteredAddress] =
+    useState("");
+  const [ownerEntityPAN, setOwnerEntityPAN] = useState("");
+  // const [isActive, setIsActive] = useState("");
+  // const [isVerified, setIsVerified] = useState("");
+
+  //for wh_basic_details
+  const [whId, setWhId] = useState("");
+  const [whIdCreatedTimestamp, setWhIdCreatedTimestamp] = useState("");
+  const [whName, setWhName] = useState("");
+  const [whAddress, setWhAddress] = useState("");
+  const [whGpsCoordinates, setWhGpsCoordinates] = useState("");
+  const [whType, setWhType] = useState("");
+  const [whTotalSpace, setWhTotalSpace] = useState("");
+  const [whLandArea, setWhLandArea] = useState("");
+
+  // const [isActive_basic_details, setIsActive_Basic_details] = useState("");
+  // const [isVerified_basic_details, setIsVerified_Basic_details] = useState("");
+
+  //wh_building_specification
+  const [whRoofHeight, setWhRoofHeight] = useState("");
+  const [whRoofType, setWhRoofType] = useState("");
+  const [whHvac, setWhHvac] = useState("");
+  const [whElectrical, setWhElectrical] = useState("");
+  const [whFlooringType, setWhFlooringType] = useState("");
+  const [whLoadingDockCount, setWhLoadingDockCount] = useState("");
+  const [whLoadingDockHeight, setWhLoadingDockHeight] = useState("");
+  const [whAge, setWhAge] = useState("");
+  const [whLoadingDockSize, setWhLoadingDockSize] = useState("");
+  // const [isActive_buil_spec, setIsActive_build_spec] = useState("");
+  // const [isVerified_buil_spec, setIsVerified_build_spec] = useState("");
+
+  //wh_rental_information
+  const [whRentalID, setWhRentalID] = useState("");
+  const [whRentalCreatedTimestamp, setWhRentalCreatedTimestamp] = useState("");
+  const [whRentalAvailableDate, setWhRentalAvailableDate] = useState("");
+  const [whMinLease, setWhMinLease] = useState("");
+  const [whMaxLease, setWhMaxLease] = useState("");
+  const [whRentalRate, setWhRentalRate] = useState("");
+  const [whRentalUnit, setWhRentalUnit] = useState("");
+  const [whSecurityDeposit, setWhSecurityDeposit] = useState("");
+  const [whLockInPeriod, setWhLockInPeriod] = useState("");
+  const [whRentalIncrement, setWhRentalIncrement] = useState("");
+  const [whNoticePeriod, setWhNoticePeriod] = useState("");
+  const [whRentFreePeriod, setWhRentFreePeriod] = useState("");
+
+  // const [whRentalIsActive, setWhRentalIsActive] = useState("");
+  // const [whRentalIsVerified, setWhRentalIsVerified] = useState("");
+
+  const [RequirementPostID, setRequirementPostID] = useState("");
+  const [RequirementIdCreatedTimeStamp, setRequirementIdCreatedTimeStamp] =
+    useState("");
+  const [RequirementStartDate, setRequirementStartDate] = useState("");
+  const [RequirementLocation, setRequirementLocation] = useState("");
+  const [RequirementMaxDistance, setRequirementMaxDistance] = useState("");
+  const [RequirementArea, setRequirementArea] = useState("");
+  const [Requirementwh, setRequirementwh] = useState("");
+  const [RequirementDuration, setRequirementDuration] = useState("");
+  const [RequirementOtherDetails, setRequirementOtherDetails] = useState("");
+  const [RequirementRate, setRequirementRate] = useState("");
+  const [CustomerId, setCustomerId] = useState("");
+  const [showTooltipText, setShowTooltipText] = useState(false);
+  const [landAreaUnit, setLandAreaUnit] = useState("");
+  const [totalSpaceUnit, setTotalSpaceUnit] = useState("");
+
+  const hideTooltipText = () => {
+    setShowTooltipText(false);
+  };
+
+  const showTooltipTextOnHover = () => {
+    setShowTooltipText(true);
+  };
+
+  const [showConversionBox, setShowConversionBox] = useState(false);
+  const [conversionOption, setConversionOption] = useState("");
+  const [inputArea, setInputArea] = useState("");
+  const [convertedArea, setConvertedArea] = useState("");
+
+  const toggleConversionBox = () => {
+    setShowConversionBox(!showConversionBox);
+  };
+
+  const handleConversion = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setConversionOption(event.target.value);
+    convertArea(inputArea, event.target.value);
+  };
+
+  //map
+  const [city, setCity] = useState("");
+  const [cityCoordinates, setCityCoordinates] = useState(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    20.5937, 78.9629,
+  ]); // Default coordinates for India
+
+  const handleSearch = () => {
+    // You can use a geocoding API to convert the city name to coordinates.
+    // For this example, we will use a hardcoded list of coordinates for some Indian cities.
+    const cityCoordinates: Record<string, [number, number]> = {
+      Mumbai: [19.076, 72.8777],
+      Delhi: [28.7041, 77.1025],
+      Bengaluru: [12.9716, 77.5946],
+    };
+
+    if (city in cityCoordinates) {
+      setMapCenter(cityCoordinates[city]);
+    } else {
+      alert("City not found");
+    }
+  };
+  const [mapVisible, setMapVisible] = useState(false);
+
+  const toggleMapVisibility = () => {
+    setMapVisible(!mapVisible);
+  };
+
+  const getUserLocation = async () => {
+    if (city) {
+      try {
+        const response = await axios.get(
+          `https://apis.mapmyindia.com/advancedmaps/v1/YOUR_API_KEY/geo_code?addr=${city}`
+        );
+        const { lat, lng } = response.data.results[0];
+        setUserLocation([lat, lng]);
+      } catch (error) {
+        console.log("Error retrieving city coordinates:", error);
+      }
+    }
+  };
+  const getCityCoordinates = async () => {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?city=${city}&country=India&format=json`
+    );
+    const data = await response.json();
+    if (data.length > 0) {
+      setCityCoordinates({
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+      });
+    } else {
+      alert("City not found");
+    }
+  };
+
+  const convertArea = (area: string, option: string) => {
+    const areaValue = parseFloat(area);
+    let result = 0;
+
+    if (isNaN(areaValue)) {
+      setConvertedArea("");
+      return;
+    }
+
+    switch (option) {
+      case "sqft_to_sqm":
+        result = areaValue * 0.092903;
+        break;
+      case "sqm_to_sqft":
+        result = areaValue * 10.764;
+        break;
+      case "acre_to_hectare":
+        result = areaValue * 0.404686;
+        break;
+      case "hectare_to_acre":
+        result = areaValue * 2.47105;
+        break;
+      case "acre_to_sqm":
+        result = areaValue * 4046.86;
+        break;
+      case "sqm_to_acre":
+        result = areaValue * 0.000247105;
+        break;
+      case "hectare_to_sqm":
+        result = areaValue * 10000;
+        break;
+      case "sqm_to_hectare":
+        result = areaValue * 0.0001;
+        break;
+      default:
+        result = 0;
+    }
+
+    setConvertedArea(result.toFixed(2));
+  };
+
+  const handleAreaInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputArea(event.target.value);
+    convertArea(event.target.value, conversionOption);
+  };
+
+  const units = [
+    { value: "sqm", label: "Square meters" },
+    { value: "sqft", label: "Square feet" },
+    { value: "acre", label: "Acres" },
+    { value: "hectare", label: "Hectares" },
+  ];
+
+  const handleLandAreaUnitChange = (unit) => {
+    setLandAreaUnit(unit.value);
+  };
+
+  const handleTotalSpaceUnitChange = (unit) => {
+    setTotalSpaceUnit(unit.value);
+  };
+
+  //new map
+  const [cityName, setCityName] = useState("");
+  const handleLocationSelect = (coordinates) => {
+    setWhGpsCoordinates(coordinates);
+  };
+
+  // function LocationMarker() {
+  //   const [position, setPosition] = useState<[number, number] | null>(null);
+  //   const map = useMapEvents({
+  //     click: (e) => {
+  //       setPosition(e.latlng);
+  //       setWhGpsCoordinates(`${e.latlng.lat}, ${e.latlng.lng}`);
+  //     },
+  //   });
+
+  //   return position === null ? null : (
+  //     <Marker position={position}>
+  //       {/* <Popup>
+  //         {`Latitude: ${position[0]}, Longitude: ${position[1]}`}
+  //       </Popup> */}
+  //     </Marker>
+  //   );
+  // }
+  const [pincode, setPincode] = React.useState("");
+  const [map, setMap] = React.useState(null);
+  const [latLong, setLatLong] = React.useState([26.7922, 82.1999]);
+  const handlePincodeSearch = async () => {
+    try {
+      const targetUrl = `https://api.opencagedata.com/geocode/v1/json?q=${pincode}&key=50be9a80ff994f92b0a3eef116b37f93`;
+      const response = await fetch(targetUrl);
+      if (!response.ok) {
+        throw new Error(`Error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const location = data.results[0].geometry;
+        const latitude = location.lat;
+        const longitude = location.lng;
+        if (latitude && longitude) {
+          setLatLong([latitude, longitude]);
+          console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+        } else {
+          throw new Error("Invalid latitude or longitude");
+        }
+      } else {
+        throw new Error("Geocoding data not available");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const MapClickEvent = ({ setCoordinates }) => {
+    const map = useMapEvents({
+      click: (event) => {
+        const { lat, lng } = event.latlng;
+        setCoordinates(`Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`);
+      },
+    });
+    return null;
+  };
+
+  const handleMapClick = (event) => {
+    setWhGpsCoordinates(event.latlng);
+  };
+
+  //setUserRole(get_user_role())
+
+  //Code for conversion of human into Unix
+  // var Stamp = moment('').valueOf();
+  // console.log("conversion is " , Stamp)
+  const { register, handleSubmit, reset } = useForm();
+  // function successNotification (){
+  //   addNotification({
+  //     title: 'Success',
+  //     subtitle: 'You have successfully submitted',
+  //     message: 'Welcome to GeeksforGeeks',
+  //     theme: 'light',
+  //     closeButton:"X",
+  //     backgroundTop:"green",
+  //     backgroundBottom:"yellowgreen"
+  //   })
+  // };
+  function epoch(date) {
+    return Date.parse(date);
+  }
+  function clearFields(event) {
+    Array.from(event.target).forEach((e) => (e.value = ""));
+  }
+  const handleMultiSelect = (selectedItems) => {
+    const selects = [];
+    for (let i = 0; i < selectedItems.length; i++) {
+      selects.push(selectedItems[i]["value"]);
+    }
+    //console.log("tags are --->" + selects)
+    const selectStr = JSON.stringify(selects);
+    setSelectedTags(selects);
+  };
+  const [isCollapsed1, setIsCollapsed1] = useState(true);
+  const [isCollapsed2, setIsCollapsed2] = useState(true);
+  const [isCollapsed3, setIsCollapsed3] = useState(true);
+
+  //
+  // const whBasicDetailfinal = {
+  //   WH_NAME: whName,
+  //   WH_ADDRESS: whAddress,
+  //   WH_GPS_COORDINATES: whGpsCoordinates,
+  //   WH_TYPE: whType,
+  //   WH_TOTAL_SPACE: whTotalSpace,
+  //   WH_LAND_AREA: whLandArea,
+  //   IS_ACTIVE: isActive_basic_details,
+  //   IS_VERIFIED: isVerified_basic_details
+  // };
+  // const defaultBasicDetailValues = {
+  //   WH_NAME: "",
+  //   WH_ADDRESS: "",
+  //   WH_GPS_COORDINATES: "",
+  //   WH_TYPE: "",
+  //   WH_TOTAL_SPACE: "",
+  //   WH_LAND_AREA: "",
+  //   IS_ACTIVE: "",
+  //   IS_VERIFIED: ""
+  // };
+
+  // Define the original/default values for each field
+  const whBuildingSpecsFinal = {
+    WH_ROOF_HEIGHT: whRoofHeight,
+    WH_ROOF_TYPE: whRoofType,
+    WH_HVAC: whHvac,
+    WH_ELECTRICAL: whElectrical,
+    WH_FLOORING_TYPE: whFlooringType,
+    WH_LOADING_DOCK_COUNT: whLoadingDockCount,
+    WH_LOADING_DOCK_HEIGHT: whLoadingDockHeight,
+    WH_AGE: whAge,
+    WH_LOADING_DOCK_SIZE: whLoadingDockSize,
+    // IS_ACTIVE: isActive_buil_spec,
+    // IS_VERIFIED: isVerified_buil_spec
+  };
+
+  // Define the original/default values for each field
+  const defaultBuildingSpecValues = {
+    WH_ROOF_HEIGHT: "",
+    WH_ROOF_TYPE: "",
+    WH_HVAC: "",
+    WH_ELECTRICAL: "",
+    WH_FLOORING_TYPE: "",
+    WH_LOADING_DOCK_COUNT: "",
+    WH_LOADING_DOCK_HEIGHT: "",
+    WH_AGE: "",
+    WH_LOADING_DOCK_SIZE: "",
+    // IS_ACTIVE: "",
+    // IS_VERIFIED: ""
+  };
+
+  const whRentalDetailsFinal = {
+    WH_RENTAL_AVAILABLE_DATE: whRentalAvailableDate,
+    WH_MIN_LEASE: whMinLease,
+    WH_MAX_LEASE: whMaxLease,
+    WH_RENTAL_RATE: whRentalRate,
+    WH_RENTAL_UNIT: whRentalUnit,
+    WH_SECURITY_DEPOSIT: whSecurityDeposit,
+    WH_LOCK_IN_PERIOD: whLockInPeriod,
+    WH_RENTAL_INCREMENT: whRentalIncrement,
+    WH_NOTICE_PERIOD: whNoticePeriod,
+    WH_RENT_FREE_PERIOD: whRentFreePeriod,
+    // WH_RENTAL_IS_ACTIVE: whRentalIsActive,
+    // WH_RENTAL_IS_VERIFIED: whRentalIsVerified
+  };
+
+  // Define the original/default values for each field
+  const defaultRentalDetailsValues = {
+    WH_RENTAL_AVAILABLE_DATE: "",
+    WH_MIN_LEASE: "",
+    WH_MAX_LEASE: "",
+    WH_RENTAL_RATE: "",
+    WH_RENTAL_UNIT: "",
+    WH_SECURITY_DEPOSIT: "",
+    WH_LOCK_IN_PERIOD: "",
+    WH_RENTAL_INCREMENT: "",
+    WH_NOTICE_PERIOD: "",
+    WH_RENT_FREE_PERIOD: "",
+    // WH_RENTAL_IS_ACTIVE: "",
+    // WH_RENTAL_IS_VERIFIED: ""
+  };
+
+  const CustomTooltip = (props) => (
+    <Tooltip
+      id="custom-tooltip"
+      {...props}
+      style={{
+        backgroundColor: "white",
+        color: "black",
+        padding: "5px",
+        borderRadius: "4px",
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      This is the tooltip text
+    </Tooltip>
+  );
+
+  // Compare the current value of each field with its default value
+  // const fieldsChanged = Object.keys(defaultBasicDetailValues).filter(field => {
+  //   const currentValue = whBasicDetailfinal[field];
+  //   const defaultValue = defaultBasicDetailValues[field];
+  //   return currentValue !== defaultValue;
+  // });
+  const buildingSpecFieldsChanged = Object.keys(
+    defaultBuildingSpecValues
+  ).filter((field) => {
+    const currentValue = whBuildingSpecsFinal[field];
+    const defaultValue = defaultBuildingSpecValues[field];
+    return currentValue !== defaultValue;
+  });
+
+  const rentalInfoFieldsChanged = Object.keys(
+    defaultRentalDetailsValues
+  ).filter((field) => {
+    const currentValue = whRentalDetailsFinal[field];
+    const defaultValue = defaultRentalDetailsValues[field];
+    return currentValue !== defaultValue;
+  });
+
+  const toggleCollapse1 = (index: number) => {
+    setIsCollapsed1(!isCollapsed1);
+  };
+
+  const toggleCollapse2 = (index: number) => {
+    setIsCollapsed2(!isCollapsed2);
+  };
+  const toggleCollapse3 = (index: number) => {
+    setIsCollapsed3(!isCollapsed3);
+  };
+
+  const onSubmit = async () => {
+    const article = { title: "React POST Request Example" };
+    const headers = {
+      Authorization: "Bearer mytoken",
+      accept: "application/json",
+    };
+
+    if (usrRole == "Carrier") {
+      const params_carrier_mot =
+        "carrier_mot/?" +
+        "CARRIER_ID=" +
+        CarrierID +
+        "&CARRIER_MOT_ID=" +
+        MotID +
+        "&CARRIER_MOT_CREATED_TIMESTAMP=" +
+        Timestamp +
+        "&CARRIER_MOT_ORIGIN=" +
+        selectedSource +
+        "&CARRIER_MOT_DESTINATION=" +
+        selectedDestination +
+        "&CARRIER_MOT_TOTAL_DISTANCE=" +
+        distance +
+        "&CARRIER_MOT_EQUIPMENT_TYPE=" +
+        selectedEquipment +
+        "&CARRIER_MOT_PICKUP_DATE=" +
+        Dates +
+        "&CARRIER_MOT_DELIVERY_DATE=" +
+        DeliveryDate +
+        "&IS_ACTIVE" +
+        "=True";
+      const hostname = Constants.api_gateway_host;
+      axios
+        .post(Constants.api_gateway_host + "/" + params_carrier_mot, article, {
+          headers,
+        })
+        .then((response) => {
+          console.log(response);
+          console.log(response.data);
+          // successNotification();
+          alert("you have filled the form !");
+          router.push("/ViewPost");
+          clearFields(event);
+          // setSuccessFlag("true");
+        })
+        .catch((err) => {
+          console.log("error-->", err);
+          // setErrorFlag("true");
+          alert("you have filled the form !");
+          clearFields(event);
+        });
+      //clearFields(event);
+    } else if (usrRole == "Broker") {
+      const params_broker_load =
+        "broker_load/?" +
+        "BROKER_ID=" +
+        BrokerID +
+        "&BROKER_LOAD_ID=" +
+        IDLoad +
+        "&BROKER_LOAD_CREATED_TIMESTAMP=" +
+        Timestamp +
+        "&BROKER_LOAD_ORIGIN=" +
+        selectedSource +
+        "&BROKER_LOAD_DESTINATION=" +
+        selectedDestination +
+        "&BROKER_LOAD_DISTANCE=" +
+        Distances +
+        "&BROKER_LOAD_EQUIPMENT_TYPE=" +
+        selectedEquipment +
+        "&BROKER_LOAD_PICKUP_DATE=" +
+        pickupdates +
+        "&BROKER_LOAD_DELIVERY_DATE=" +
+        delivery +
+        "&BROKER_LOAD_WEIGHT=" +
+        weight +
+        "&BROKER_LOAD_COMMODITY=" +
+        commodity +
+        "&BROKER_LOAD_RATE=" +
+        rates +
+        "&BROKER_LOAD_ADDITIONAL_REQUIREMENTS=" +
+        addition +
+        "&IS_ACTIVE" +
+        "=True";
+      const hostnames = Constants.api_gateway_host;
+      console.log("api call--->");
+      console.log(Constants.api_gateway_host + "/" + params_broker_load);
+      axios
+        .post(Constants.api_gateway_host + "/" + params_broker_load, article, {
+          headers,
+        })
+        .then((response) => {
+          console.log(response);
+          // successNotification();
+          alert("you have filled the form !");
+          router.push("/ViewPosts");
+          clearFields(event);
+          // setSuccessFlag("true");
+        })
+        .catch((err) => {
+          console.log("error--->", err);
+          // setErrorFlag("true");
+          clearFields(event);
+        });
+    } else if (usrRole == "Customer") {
+      {
+        /*customers*/
+      }
+      const params_customer_string =
+        "wh_requirement_details/?" +
+        "REQUIREMENT_POST_ID=" +
+        RequirementPostID +
+        "&REQUIREMENT_ID_CREATED_TIMESTAMP=" +
+        RequirementIdCreatedTimeStamp +
+        "&REQUIREMENT_START_DATE=" +
+        RequirementStartDate +
+        "&REQUIREMENT_LOCATION=" +
+        RequirementLocation +
+        "&REQUIREMENT_MAX_DISTANCE=" +
+        RequirementMaxDistance +
+        "&REQUIREMENT_AREA=" +
+        RequirementArea +
+        "&REQUIREMENT_WH=" +
+        Requirementwh +
+        "&REQUIREMENT_DURATION=" +
+        RequirementDuration +
+        "&REQUIREMENT_OTHER_DETAILS=" +
+        RequirementOtherDetails +
+        "&REQUIREMENT_RATE=" +
+        RequirementRate +
+        "&CUSTOMER_ID=" +
+        {
+          /* Customer Id */
+        };
+      CustomerId +
+        "&IS_ACTIVE=" +
+        Constants.isActive +
+        "&IS_VERIFIED=" +
+        Constants.isVerified;
+      const hostname_params_customer_string = Constants.api_gateway_host;
+      axios
+        .post(
+          Constants.api_gateway_host + "/" + params_customer_string,
+          article,
+          {
+            headers,
+          }
+        )
+        .then((response) => {
+          console.log(response);
+          console.log(response.data);
+          // successNotification();
+          alert("you have filled the form !");
+          // alert(final_string)
+          router.push("/ViewPost");
+          clearFields(event);
+          // setSuccessFlag("true");
+        })
+        .catch((err) => {
+          console.log("error-->", err);
+          // setErrorFlag
+          clearFields(event);
+        });
+    } else if (usrRole == "Owner") {
+      // const params_wh_owner_details =
+      //   "wh_owner_details/?" +
+      //   "OWNER_ENTITY_ID=" +
+      //   ownerEntityId +
+      //   "&OWNER_ID=" +
+      //   ownerId +
+      //   "&OWNER_ID_CREATED_TIMESTAMP=" +
+      //   ownerIdCreatedTimestamp +
+      //   "&OWNER_FULL_NAME=" +
+      //   ownerFullName +
+      //   "&OWNER_PHONE_NUMBER=" +
+      //   ownerPhoneNumber +
+      //   "&OWNER_EMAIL_ID=" +
+      //   ownerEmailId +
+      //   "&OWNER_ADDRESS=" +
+      //   ownerAddress +
+      //   "&OWNER_ID_DOC_TYPE=" +
+      //   ownerIdDocType +
+      //   "&OWNER_ID_DOC_NUMBER=" +
+      //   ownerIdDocNumber +
+      //   "&OWNER_ENTITY_TYPE=" +
+      //   ownerEntityType +
+      //   "&OWNER_ENTITY_NAME=" +
+      //   ownerEntityName +
+      //   "&OWNER_ENTITY_REGISTRATION_NUMBER=" +
+      //   ownerEntityRegistrationNumber +
+      //   "&OWNER_ENTITY_REGISTERED_ADDRESS=" +
+      //   ownerEntityRegisteredAddress +
+      //   "&OWNER_ENTITY_PAN=" +
+      //   ownerEntityPAN +
+      //   '&IS_ACTIVE=' +
+      //      Constants.isActive     +
+      //   '&IS_VERIFIED=' +
+      //   Constants.isVerified;
+
+      // const hostname = Constants.api_gateway_host;
+      //   axios
+      //   .post(Constants.api_gateway_host + "/" +  params_wh_owner_details, article, {
+      //     headers,
+      //   })
+      //   .then((response) => {
+      //     console.log(response);
+      //     console.log(response.data);
+      //     // successNotification();
+      //     alert("you have filled the form !");
+      //    // alert(final_string)
+      //    // router.push("/ViewPosts");
+      //     clearFields(event);
+      //     // setSuccessFlag("true");
+      //   })
+      //   .catch((err) => {
+      //     console.log("error-->", err);
+      //     // setErrorFlag
+      //     clearFields(event);
+
+      //   })
+
+      //wh_ownwer_details_string
+      // const temp_wh_basic_details =
+      // (fieldsChanged.includes("WH_NAME") ? "&WH_NAME=" + whName : "") +
+      // (fieldsChanged.includes("WH_ADDRESS") ? "&WH_ADDRESS=" + whAddress : "") +
+      // (fieldsChanged.includes("WH_GPS_COORDINATES") ? "&WH_GPS_COORDINATES=" + whGpsCoordinates : "") +
+      // (fieldsChanged.includes("WH_TYPE") ? "&WH_TYPE=" + whType : "") +
+      // (fieldsChanged.includes("WH_TOTAL_SPACE") ? "&WH_TOTAL_SPACE=" + whTotalSpace : "") +
+      // (fieldsChanged.includes("WH_LAND_AREA") ? "&WH_LAND_AREA=" + whLandArea : "") +
+      // (fieldsChanged.includes("IS_ACTIVE") ? "&IS_ACTIVE=" + isActive_basic_details : "") +
+      // (fieldsChanged.includes("IS_VERIFIED") ? "&IS_VERIFIED=" + isVerified_basic_details : "");
+
+      // if(temp_wh_basic_details.trim().length!==0){
+      //  const params_wh_basic_details= "wh_basic_details/?" +"WH_ID=" + whId+"&WH_ID_CREATED_TIMESTAMP="+whIdCreatedTimestamp +"&OWNER_ENTITY_ID=" + ownerEntityId +temp_wh_basic_details;
+      //  const hostname = Constants.api_gateway_host;
+      //     axios
+      //     .post(Constants.api_gateway_host + "/" + params_wh_basic_details  , article, {
+      //       headers,
+      //     })
+      //     .then((response) => {
+      //       console.log(response);
+      //       console.log(response.data);
+      //       // successNotification();
+      //      // alert("you have filled the form !");
+      //      // alert(final_string)
+      //      // router.push("/ViewPosts");
+      //       clearFields(event);
+      //       // setSuccessFlag("true");
+      //     })
+      //     .catch((err) => {
+      //       console.log("error-->", err);
+      //       // setErrorFlag
+      //       clearFields(event);
+
+      //     })
+
+      // }
+      // else{
+      //   const alternative_wh_basic_details="wh_basic_details/?" +"WH_ID=" + whId;
+      //   const hostname = Constants.api_gateway_host;
+      //   axios
+      //   .post(Constants.api_gateway_host + "/" + alternative_wh_basic_details  , article, {
+      //     headers,
+      //   })
+      //   .then((response) => {
+      //     console.log(response);
+      //     console.log(response.data);
+      //     // successNotification();
+      //    // alert("you have filled the form !");
+      //    // alert(final_string)
+      //    // router.push("/ViewPosts");
+      //     clearFields(event);
+      //     // setSuccessFlag("true");
+      //   })
+      //   .catch((err) => {
+      //     console.log("error-->", err);
+      //     // setErrorFlag
+      //     clearFields(event);
+
+      //   })
+
+      // }
+      const params_wh_basic_details =
+        "wh_basic_details/?" +
+        "WH_ID=" +
+        whId +
+        "&WH_ID_CREATED_TIMESTAMP=" +
+        whIdCreatedTimestamp +
+        "&WH_NAME=" +
+        whName +
+        "&WH_ADDRESS=" +
+        whAddress +
+        "&WH_GPS_COORDINATES=" +
+        whGpsCoordinates +
+        "&WH_TYPE=" +
+        whType +
+        "&WH_TOTAL_SPACE=" +
+        whTotalSpace +
+        "&WH_LAND_AREA=" +
+        whLandArea +
+        "&IS_ACTIVE=" +
+        Constants.isActive +
+        "&IS_VERIFIED=" +
+        Constants.isVerified;
+
+      const hostname_wh_basic_details = Constants.api_gateway_host;
+      axios
+        .post(
+          Constants.api_gateway_host + "/" + params_wh_basic_details,
+          article,
+          {
+            headers,
+          }
+        )
+        .then((response) => {
+          console.log(response);
+          console.log(response.data);
+          // successNotification();
+          alert("you have filled the form !");
+          // alert(final_string)
+          router.push("/ViewListing");
+          clearFields(event);
+          // setSuccessFlag("true");
+        })
+        .catch((err) => {
+          console.log("error-->", err);
+          // setErrorFlag
+          clearFields(event);
+        });
+
+      const temp_wh_building_specification =
+        (buildingSpecFieldsChanged.includes("WH_ROOF_HEIGHT")
+          ? "WH_ROOF_HEIGHT=" + whRoofHeight
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_ROOF_TYPE")
+          ? "&WH_ROOF_TYPE=" + whRoofType
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_HVAC")
+          ? "&WH_HVAC=" + whHvac
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_ELECTRICAL")
+          ? "&WH_ELECTRICAL=" + whElectrical
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_FLOORING_TYPE")
+          ? "&WH_FLOORING_TYPE=" + whFlooringType
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_LOADING_DOCK_COUNT")
+          ? "&WH_LOADING_DOCK_COUNT=" + whLoadingDockCount
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_LOADING_DOCK_HEIGHT")
+          ? "&WH_LOADING_DOCK_HEIGHT=" + whLoadingDockHeight
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_AGE")
+          ? "&WH_AGE=" + whAge
+          : "") +
+        (buildingSpecFieldsChanged.includes("WH_LOADING_DOCK_SIZE")
+          ? "&WH_LOADING_DOCK_SIZE=" + whLoadingDockSize
+          : "");
+
+      if (temp_wh_building_specification !== "") {
+        const params_wh_building_spec =
+          "wh_building_specification/?" +
+          temp_wh_building_specification +
+          "&WH_ID=" +
+          whId +
+          "&IS_ACTIVE=" +
+          Constants.isActive +
+          "&IS_VERIFIED=" +
+          Constants.isVerified;
+        const hostname = Constants.api_gateway_host;
+        axios
+          .post(
+            Constants.api_gateway_host + "/" + params_wh_building_spec,
+            article,
+            {
+              headers,
+            }
+          )
+          .then((response) => {
+            console.log(response);
+            console.log(response.data);
+            // successNotification();
+            // alert("you have filled the form !");
+            // alert(final_string)
+            // router.push("/ViewPosts");
+            clearFields(event);
+            // setSuccessFlag("true");
+          })
+          .catch((err) => {
+            console.log("error-->", err);
+            // setErrorFlag
+            clearFields(event);
+          });
+      }
+
+      const temp_wh_rental_info =
+        (rentalInfoFieldsChanged.includes("WH_RENTAL_AVAILABLE_DATE")
+          ? "&WH_RENTAL_AVAILABLE_DATE=" + whRentalAvailableDate
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_MIN_LEASE")
+          ? "&WH_MIN_LEASE=" + whMinLease
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_MAX_LEASE")
+          ? "&WH_MAX_LEASE=" + whMaxLease
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_RENTAL_RATE")
+          ? "&WH_RENTAL_RATE=" + whRentalRate
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_RENTAL_UNIT")
+          ? "&WH_RENTAL_UNIT=" + whRentalUnit
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_SECURITY_DEPOSIT")
+          ? "&WH_SECURITY_DEPOSIT=" + whSecurityDeposit
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_LOCK_IN_PERIOD")
+          ? "&WH_LOCK_IN_PERIOD=" + whLockInPeriod
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_RENTAL_INCREMENT")
+          ? "&WH_RENTAL_INCREMENT=" + whRentalIncrement
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_NOTICE_PERIOD")
+          ? "&WH_NOTICE_PERIOD=" + whNoticePeriod
+          : "") +
+        (rentalInfoFieldsChanged.includes("WH_RENT_FREE_PERIOD")
+          ? "&WH_RENT_FREE_PERIOD=" + whRentFreePeriod
+          : "");
+      // (rentalInfoFieldsChanged.includes("IS_ACTIVE_RENTAL_INFO") ? "&IS_ACTIVE_RENTAL_INFO=" + whRentalIsActive : "") +
+      // (rentalInfoFieldsChanged.includes("IS_VERIFIED_RENTAL_INFO") ? "&IS_VERIFIED_RENTAL_INFO=" + whRentalIsVerified : "");
+
+      if (temp_wh_rental_info !== "") {
+        const params_wh_rental_info =
+          "wh_rental_information/?" +
+          "WH_RENTAL_ID=" +
+          whRentalID +
+          "&WH_RENTAL_ID_CREATED_TIMESTAMP=" +
+          whRentalCreatedTimestamp +
+          temp_wh_rental_info +
+          "&WH_ID=" +
+          whId +
+          "&IS_ACTIVE=" +
+          Constants.isActive +
+          "&IS_VERIFIED=" +
+          Constants.isVerified;
+
+        const hostname = Constants.api_gateway_host;
+        axios
+          .post(
+            Constants.api_gateway_host + "/" + params_wh_rental_info,
+            article,
+            {
+              headers,
+            }
+          )
+          .then((response) => {
+            console.log(response);
+            console.log(response.data);
+            // successNotification();
+            //  alert("you have filled the form !");
+            // alert(final_string)
+            // router.push("/ViewPosts");
+            clearFields(event);
+            // setSuccessFlag("true");
+          })
+          .catch((err) => {
+            console.log("error-->", err);
+            // setErrorFlag
+            clearFields(event);
+          });
+      }
+    }
+    //onst OwnerDetails = () => {
+  };
+
+  const [open, setOpen] = useState("1");
+
+  const toggle = (id) => {
+    if (open === id) {
+      setOpen();
+    } else {
+      setOpen(id);
+    }
+  };
+
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const handleFileChange = (event) => {
+    setSelectedFiles([...event.target.files]);
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length > 0) {
+      try {
+        for (const file of selectedFiles) {
+          await uploadFile(file);
+        }
+        alert("Images uploaded successfully!");
+      } catch (error) {
+        console.error("Error uploading images:", error);
+        alert("Failed to upload images.");
+      }
+    } else {
+      alert("Please select at least one image to upload.");
+    }
+  };
+
+  // upload web3modal declaration
+  const [modalVisible, setModalVisible] = useState(false);
+  const [localImages, setLocalImages] = useState([]);
+  const [uploadedCIDs, setUploadedCIDs] = useState([]);
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+  };
+
+  const handleLocalUpload = async (uploadedImages) => {
+    setLocalImages((prevImages) => [...prevImages, ...uploadedImages]);
+  };
+
+  const uploadWeb3Api = async (imageCID: string, isThumbnail: boolean) => {
+    const article = { title: "React POST Request Example" };
+
+    const headers = {
+      Authorization: "Bearer mytoken",
+      accept: "application/json",
+    };
+
+    const params =
+      "wh_media_storage_cid/?" +
+      "CID=" +
+      imageCID +
+      "&WH_ID=" +
+      whId +
+      "&OWNER_ENTITY_ID=" +
+      ownerEntityId +
+      "&IS_THUMBNAIL=" +
+      (isThumbnail ? "True" : "False") + // Set IS_THUMBNAIL based on the isThumbnail parameter
+      "&IS_ACTIVE=" +
+      Constants.isActive +
+      "&IS_VERIFIED=" +
+      Constants.isVerified;
+    console.log(params);
+    try {
+      const response = await axios.post(
+        Constants.api_gateway_host + "/" + params,
+        article,
+        {
+          headers,
+        }
+      );
+      console.log("POST request response:", response.data);
+    } catch (error) {
+      console.error("Error sending POST request:", error);
+    }
+  };
+
+  const handleWeb3Upload = async () => {
+    try {
+      const successfullyUploadedCIDs = []; // Store CIDs that are successfully uploaded
+
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && key.startsWith("image_")) {
+          const localImageUrl = localStorage[key];
+          const response = await fetch(localImageUrl);
+          console.log("local storage fetch : ");
+          console.log(response);
+          const blob = await response.blob();
+
+          // Forcefully set the MIME type to 'image/jpeg' for example.
+          // You can adjust this based on the expected image type.
+          const file = new File([blob], key.replace("image_", ""), {
+            type: "image/jpeg",
+          });
+
+          try {
+            const cid = await uploadFile(file);
+            successfullyUploadedCIDs.push(cid);
+
+            localStorage.removeItem(key); // Remove the entry from localStorage on successful upload
+          } catch (uploadError) {
+            console.error("Error uploading image:", uploadError);
+          }
+        }
+      }
+
+      setUploadedCIDs(successfullyUploadedCIDs);
+      console.log("Uploaded CIDs:", successfullyUploadedCIDs);
+
+      // Handle thumbnail logic for the uploaded images
+      for (let i = 0; i < successfullyUploadedCIDs.length; i++) {
+        try {
+          const isThumbnail = i === 0; // First image is the thumbnail
+          uploadWeb3Api(successfullyUploadedCIDs[i], isThumbnail);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    } catch (error) {
+      console.error("Error uploading images to Web3 Storage:", error);
+      alert("Failed to upload images to Web3 Storage.");
+    }
+  };
+
+  const handleOpenModal = () => {
+    setModalVisible(true);
+  };
+
+  useEffect(() => {}, [loading]);
+  if (loading) {
+    // Show the loading indicator while data is being fetched
+
+    return (
+      <>
+        <div className="column d-flex align-items-xl-center justify-content-center">
+          <h3 className="m-3 p-3">
+            {" "}
+            <ReactLoading type="spinningBubbles" color="#1a152e" />
+          </h3>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {currentUser ? (
+        <React.Fragment>
+          <section className="categoryarea black-bg pt-80 pb-80"></section>
+
+          <Container fluid={true} className="header__area black-bg">
+            <meta httpEquiv="cache-control" content="no-cache" />
+            <meta httpEquiv="expires" content="0" />
+            <meta httpEquiv="pragma" content="no-cache" />
+
+            {/* to select the form for user with role as Carrier*/}
+            {/* {errorFlag == "true" && (
+            <Error />
+          )} */}
+
+            {/* to select the form for user with role as Carrier*/}
+            {/* {successFlag == "true" && (
+            <Success />
+          )} */}
+
+            {/* to select the form for user with role as Carrier*/}
+            {/* {(successFlag == "" && errorFlag == "") && usrRole == "Carrier" && ( */}
+            {usrRole == "Carrier" && (
+              <>
+                <Container fluid={true}>
+                  <div className="section__title-wrapper text-center mb-60">
+                    <br />
+                    <h2 style={{ color: "white" }} className="section__title">
+                      Your Post
+                    </h2>
+                    <p style={{ color: "white" }}>
+                      Post your load or Post your truck
+                    </p>
+                    <br />
+                  </div>
+                  <div className="sign__wrapper white-bg">
+                    <div className="sign__form">
+                      <SolClient />
+                      <div className="mt-3">
+                        <br></br>
+
+                        <h4>
+                          <label>
+                            {" "}
+                            <b>Carrier Mot Form</b>
+                          </label>
+                        </h4>
+                      </div>
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <Label> Carrier ID</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={CarrierID}
+                            name="carrierID"
+                            id="carrierID"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <Label> MOT ID - Gravitii</Label>
+                          </p>
+
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={MotID}
+                            name="motID"
+                            id="motID"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <Label> Created Timestamp</Label>
+                          </p>
+
+                          {/* <p className="text-muted m-b-15">
+                      Created Timestamp
+                    </p> */}
+
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={Timestamp}
+                            name="timeStampCarrier"
+                            id="timeStampCarrier"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <Label>MOT Location</Label>
+                          </p>
+                          <Select
+                            onChange={(
+                              event: React.ChangeEvent<HTMLSelectElement>
+                            ) => {
+                              setSelectedSource(event["value"]);
+                            }}
+                            options={optionSourceGroup}
+                            classNamePrefix="select2-selection"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Destination</Label>
+                          </p>
+                          <Select
+                            onChange={(event: React.ChangeEvent<unknown>) => {
+                              setSelectedDestination(event["value"]);
+                            }}
+                            options={optionTargetGroup}
+                            classNamePrefix="select3-selection"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Total Distance (In Miles)</Label>
+                          </p>
+
+                          {/* <p className="text-muted m-b-15">
+                      Total Distance (Miles)
+                    </p> */}
+                          <Input
+                            placeholder="Integer only"
+                            type="text"
+                            maxLength={25}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setdistance(event.target.value);
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Equipment Type</Label>
+                          </p>
+                          <Select
+                            onChange={(event: React.ChangeEvent<unknown>) => {
+                              setSelectedEquipment(event["value"]);
+                            }}
+                            options={EquipmentGroupname}
+                            classNamePrefix="select3-selection"
+                          />
+                        </div>
+                        {/* <div className="mt-3">
+                    <p className="text-muted m-b-15">
+                      Equipment Type
+                    </p>
+                    <Input
+                      type="text"
+                      maxLength={25}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => { setSelectedEquipment(event.target.value) }}
+                      name="size"
+                      id="size"
+                    />
+                  </div> */}
+
+                        <div className="mt-3">
+                          <br></br>
+
+                          <h4>
+                            <label>
+                              {" "}
+                              <b>When is it available? </b>
+                            </label>
+                          </h4>
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="input-group">
+                            <label>Pickup Date</label>
+                          </p>
+                          <InputGroup>
+                            <Flatpickr
+                              className="form-control d-block"
+                              // startDate={startDate}
+                              // endDate={endDate}
+                              // maxDate={maxDate}
+                              placeholder="choose your dates"
+                              onChange={(selectedDates, dateStr) => {
+                                const firstDate = selectedDates[0];
+                                console.log(epoch(dateStr));
+                                setDates(epoch(dateStr));
+                              }}
+                              options={{
+                                mode: "range",
+                                dateFormat: "Y-m-d",
+                              }}
+                            />
+                          </InputGroup>
+                        </div>
+
+                        <div className="mt-3">
+                          <br></br>
+                          <button type="submit" className="m-btn m-btn-4 w-100">
+                            {" "}
+                            <span></span> Submit
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Container>
+              </>
+            )}
+
+            {/* to select the form for user with role as Broker*/}
+            {/* {(successFlag == "" && errorFlag == "") && usrRole == "Broker" && ( */}
+            {usrRole == "Broker" && (
+              <>
+                <Container fluid={true}>
+                  <div className="sign__wrapper white-bg">
+                    <div className="sign__form">
+                      <div className="mt-3">
+                        <br></br>
+                        <h4>
+                          <label>
+                            {" "}
+                            <b>Broker Load Form </b>
+                          </label>
+                        </h4>
+                      </div>
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="mt-3">
+                          <p className="text-muted m-b-15">Broker ID</p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={BrokerID}
+                            name="walletID"
+                            id="walletID"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="text-muted m-b-15">
+                            Load ID - Gravitii
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={IDLoad}
+                            name="loadID"
+                            id="loadID"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="text-muted m-b-15">Created Timestamp</p>
+
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={Timestamp}
+                            name="timestampBroker"
+                            id="timestampBroker"
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <br></br>
+
+                          <h4>
+                            <label>
+                              {" "}
+                              <b>When is it available? </b>
+                            </label>
+                          </h4>
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="input-group">
+                            <label>Load Pickup Date</label>
+                          </p>
+                          <Flatpickr
+                            className="form-control d-block"
+                            data-enable-time
+                            name="goodsreadyby"
+                            placeholder="Select date and time"
+                            options={{
+                              enableTime: true,
+                              dateFormat: "Y-m-d H:i",
+                            }}
+                            onChange={(selectedDates, dateStr) => {
+                              const firstDate = selectedDates[0];
+                              console.log(epoch(dateStr));
+                              setpickupdates(epoch(dateStr));
+                              // setpickupdates(epoch(dateStr));
+                            }}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="input-group">
+                            <label>Load Delivery Date</label>
+                          </p>
+                          <Flatpickr
+                            className="form-control d-block"
+                            data-enable-time
+                            name="goodsreadyby"
+                            placeholder="Select date and time"
+                            options={{
+                              enableTime: true,
+                              dateFormat: "Y-m-d H:i:s",
+                            }}
+                            onChange={(selectedDates, dateStr, instance) => {
+                              const firstDate = selectedDates[0];
+                              console.log(epoch(dateStr));
+                              setdelivery(epoch(dateStr));
+                            }}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Equipment Type</Label>
+                          </p>
+                          <Select
+                            onChange={(event: React.ChangeEvent<unknown>) => {
+                              setSelectedEquipment(event["value"]);
+                            }}
+                            options={EquipmentGroupname}
+                            classNamePrefix="select3-selection"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Load Distance (In miles)</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={25}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setDistances(
+                                event.target.value.replace(" ", "-")
+                              );
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label> Load Weight (In Pounds Only)</Label>
+                          </p>
+                          <Input
+                            placeholder=" Max weight 44000 pounds"
+                            type="text"
+                            maxLength={25}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setweight(event.target.value);
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <Label>Origin</Label>
+                          </p>
+                          <Select
+                            onChange={(
+                              event: React.ChangeEvent<HTMLSelectElement>
+                            ) => {
+                              setSelectedSource(event["value"]);
+                            }}
+                            options={optionSourceGroup}
+                            classNamePrefix="select2-selection"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Destination</Label>
+                          </p>
+                          <Select
+                            onChange={(event: React.ChangeEvent<unknown>) => {
+                              setSelectedDestination(event["value"]);
+                            }}
+                            options={optionTargetGroup}
+                            classNamePrefix="select3-selection"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Commodity</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={25}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setcommodity(
+                                event.target.value.replace(" ", "-")
+                              );
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label> Offered Rate ($)</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={25}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setrates(event.target.value.replace(" ", "-"));
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label> Additional Requirements</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={255}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setaddition(event.target.value);
+                            }}
+                            name="size"
+                            id="size"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <br></br>
+                          <button type="submit" className="m-btn m-btn-4 w-100">
+                            {" "}
+                            <span></span> Submit
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Container>
+              </>
+            )}
+            {usrRole == "Customer" && (
+              <>
+                <Container fluid={true}>
+                  <div className="sign__wrapper white-bg">
+                    <div className="sign__form">
+                      <div className="mt-3">
+                        <br></br>
+                        <h4>
+                          <label>
+                            {" "}
+                            <b>Customer Request Form </b>
+                          </label>
+                        </h4>
+                      </div>
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            Requirement post ID
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementPostID}
+                            name="RequirementPostID"
+                            id="RequirementPostID"
+                            readOnly={true}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            Requirement ID Created Timestamp
+                          </p>
+
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementIdCreatedTimeStamp}
+                            name="RequirementIdCreatedTimeStamp"
+                            id="RequirementIdCreatedTimeStamp"
+                            readOnly={true}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            Requirement Start Date
+                          </p>
+
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementStartDate}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementStartDate(event.target.value);
+                            }}
+                            name="RequirementStartDate"
+                            id="RequirementStartDate"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Requirement Location Detail</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementLocation}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementLocation(event.target.value);
+                            }}
+                            name="RequirementLocation"
+                            id="RequirementLocation"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Requirement Maximum Distance </Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementMaxDistance}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementMaxDistance(event.target.value);
+                            }}
+                            name="RequirementMaxDistance"
+                            id="RequirementMaxDistance"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Requirement Area Required </Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementArea}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementArea(event.target.value);
+                            }}
+                            name="RequirementArea"
+                            id="RequirementArea"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Type of WH Required </Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={Requirementwh}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementwh(event.target.value);
+                            }}
+                            name="Requirementwh"
+                            id="Requirementwh"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select2-container">
+                            <label>Requirement Duration</label>
+                          </p>
+                          <InputGroup>
+                            <Flatpickr
+                              className="form-control d-block"
+                              // startDate={startDate}
+                              // endDate={endDate}
+                              // maxDate={maxDate}
+                              placeholder="choose your dates"
+                              onChange={(selectedDates, dateStr) => {
+                                const firstDate = selectedDates[0];
+                                console.log(epoch(dateStr));
+                                setRequirementDuration(epoch(dateStr));
+                              }}
+                              options={{
+                                mode: "range",
+                                dateFormat: "Y-m-d",
+                              }}
+                            />
+                          </InputGroup>
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Requirement Other details</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementOtherDetails}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementOtherDetails(event.target.value);
+                            }}
+                            name="RequirementOtherDetails"
+                            id="RequirementOtherDetails"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Requirement Rate</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={RequirementRate}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setRequirementRate(event.target.value);
+                            }}
+                            name="RequirementRate"
+                            id="RequirementRate"
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <p className="mb-3 select3-container">
+                            <Label>Customer ID</Label>
+                          </p>
+                          <Input
+                            type="text"
+                            maxLength={50}
+                            defaultValue={CustomerId}
+                            onChange={(
+                              event: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              setCustomerId(event.target.value);
+                            }}
+                            name="CustomerId"
+                            id="CustomerId"
+                          />
+                        </div>
+
+                        {/*<div className="mt-3">
+                        <p className="mb-3 select3-container">
+                          <Label>Active</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={25}
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>
+                          ) => {
+                            setDistances(event.target.value.replace(" ", "-"));
+                          }}
+                          name="size"
+                          id="size"
+                        />
+                        </div>*/}
+
+                        {/*<div className="mt-3">
+                        <p className="mb-3 select3-container">
+                          <Label>Verified</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={25}
+                          
+                          onChange={(
+                            event: React.ChangeEvent<HTMLInputElement>
+                          ) => {
+                            setDistances(event.target.value.replace(" ", "-"));
+                          }}
+                          name="size"
+                          id="size"
+                        />
+                        </div>  */}
+                        <div className="mt-3">
+                          <br></br>
+                          <button type="submit" className="m-btn m-btn-4 w-100">
+                            {" "}
+                            <span></span> Submit
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Container>
+              </>
+            )}
+
+            {usrRole === "Owner" && (
+              <>
+                {/* <Container fluid={true}>
+                <div className="section__title-wrapper text-center mb-60">
+                  <br />
+                  <h2 style={{ color: "white" }} className="section__title">
+                    Owner Details
+                  </h2>
+                  <br />
+                </div>
+                <div className="sign__wrapper white-bg">
+                  <div className="sign__form">
+                    <SolClient />
+                    <div className="mt-3">
+                      <br></br>
+                      <h4>
+                        <label>
+                          {" "}
+                          <b>Owner Details Form</b>
+                        </label>
+                      </h4>
+                    </div>
+                   
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label> Owner Entity ID</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityId}
+                          name="ownerEntityId"
+                          id="ownerEntityId"
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label> Owner ID</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerId}
+                          name="ownerId"
+                          id="ownerId"
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Created Timestamp</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerIdCreatedTimestamp}
+                          name="ownerIdCreatedTimestamp"
+                          id="ownerIdCreatedTimestamp"
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Full Name</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerFullName}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerFullName(event.target.value);
+                          }}
+                          name="ownerFullName"
+                          id="ownerFullName"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Phone Number</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerPhoneNumber}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerPhoneNumber(event.target.value);
+                          }}
+                          name="ownerPhoneNumber"
+                          id="ownerPhoneNumber"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Email ID</Label>
+                        </p>
+                        <Input
+                          type="email"
+                          maxLength={50}
+                          defaultValue={ownerEmailId}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEmailId(event.target.value);
+                          }}
+                          name="ownerEmailId"
+                          id="ownerEmailId"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Address</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerAddress}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerAddress(event.target.value);
+                          }}
+                          name="ownerAddress"
+                          id="ownerAddress"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>ID Document Type</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerIdDocType}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerIdDocType(event.target.value);
+                          }}
+                          name="ownerIdDocType"
+                          id="ownerIdDocType"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>ID Document Number</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerIdDocNumber}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerIdDocNumber(event.target.value);
+                          }}
+                          name="ownerIdDocNumber"
+                          id="ownerIdDocNumber"
+                        />
+                      </div>
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Entity Type</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityType}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEntityType(event.target.value);
+                          }}
+                          name="ownerEntityType"
+                          id="ownerEntityType"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Entity Name</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityName}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEntityName(event.target.value);
+                          }}
+                          name="ownerEntityName"
+                          id="ownerEntityName"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Registration Number</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityRegistrationNumber}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEntityRegistrationNumber(event.target.value);
+                          }}
+                          name="ownerEntityRegistrationNumber"
+                          id="ownerEntityRegistrationNumber"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Registered Address</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityRegisteredAddress}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEntityRegisteredAddress(event.target.value);
+                          }}
+                          name="ownerEntityRegisteredAddress"
+                          id="ownerEntityRegisteredAddress"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>PAN</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={ownerEntityPAN}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setOwnerEntityPAN(event.target.value);
+                          }}
+                          name="ownerEntityPAN"
+                          id="ownerEntityPAN"
+                        />
+                      </div>
+{/* 
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Is Active?</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={isActive}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setIsActive(event.target.value);
+                          }}
+                          name="isActive"
+                          id="isActive"
+                        />
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Is Verified?</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={isVerified}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setIsVerified(event.target.value);
+                          }}
+                          name="isVerified"
+                          id="isVerified"
+                        />
+                      </div> */}
+
+                {/* </div>
+                </div>
+              </Container>  */}
+
+                <div>
+                  <Accordion open={open} toggle={toggle}>
+                    <AccordionItem>
+                      <AccordionHeader targetId="1">
+                        {" "}
+                        Warehouse Basic Details
+                      </AccordionHeader>
+                      <AccordionBody accordionId="1">
+                        {/* <Accordion open={open} toggle={toggle}>
+          <AccordionItem>
+            <AccordionHeader onClick={toggleCollapse1}>Warehouse Basic Details</AccordionHeader>
+            <AccordionBody collapsed={isCollapsed1} className={`sign__wrapper white-bg ${isCollapsed1 ? 'collapse' : ''}`}> */}
+
+                        <Container fluid={true}>
+                          <div
+                            className="section__title-wrapper text-center mb-60"
+                            onClick={toggleCollapse1}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <br />
+                            <h2
+                              style={{ color: "white" }}
+                              className="section__title"
+                            ></h2>
+                            <br />
+                          </div>
+                          <div className="sign__form">
+                            <SolClient />
+                            <div className="mt-3">
+                              <br></br>
+                              <h4>
+                                <label>
+                                  {" "}
+                                  <b>Warehouse Basic Details Form</b>
+                                </label>
+                              </h4>
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label> Warehouse ID</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whId}
+                                name="whId"
+                                id="whId"
+                                readOnly={true}
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Created Timestamp</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whIdCreatedTimestamp}
+                                name="whIdCreatedTimestamp"
+                                id="whIdCreatedTimestamp"
+                                readOnly={true}
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Owner Entity ID</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={ownerEntityId}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setOwnerEntityId(event.target.value);
+                                }}
+                                name="ownerEntityId"
+                                id="ownerEntityId"
+                                readOnly={true}
+                              />
+                            </div>
+
+                            {/* <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Name</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={whName}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setWhName(event.target.value);
+                          }}
+                          name="whName"
+                          id="whName"
+                        />
+                      </div> */}
+                            {/* <div className="mt-3">
+        <p className="mb-3 select2-container">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Label>Name</Label>
+            
+            <div className="hover-text">
+  <div style={{ display: 'flex', alignItems: 'center' }}>
+    <Button
+      variant="link"
+      style={{
+        backgroundColor: '#2196F3',
+        borderRadius: '50%',
+        border: '1px solid white',
+        color: 'white',
+        padding: '0.1rem',
+        marginLeft: '1rem',
+        marginBottom: '0.5rem',
+        width: '20px',
+        height: '20px',
+        fontSize: '0.8rem',
+      }}
+    >
+      i
+    </Button>
+    <span className="tooltip-text">
+      This is the tooltip text
+      <button className="got-it-button">Got it</button>
+    </span>
+  </div>
+</div>
+</div>
+
+        </p>
+        <Input
+          type="text"
+          maxLength={50}
+          defaultValue={whName}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setWhName(event.target.value);
+          }}
+          name="whName"
+          id="whName"
+        />
+      </div> */}
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Label>Warehouse Name</Label>
+                                  <div className="hover-text">
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <Button
+                                        variant="link"
+                                        style={{
+                                          backgroundColor: "#2196F3",
+                                          borderRadius: "50%",
+                                          border: "1px solid white",
+                                          color: "white",
+                                          padding: "0.1rem",
+                                          marginLeft: "1rem",
+                                          marginBottom: "0.5rem",
+                                          width: "20px",
+                                          height: "20px",
+                                          fontSize: "0.8rem",
+                                        }}
+                                        onMouseEnter={showTooltipTextOnHover}
+                                      >
+                                        i
+                                      </Button>
+                                      {showTooltipText && (
+                                        <span className="tooltip-text">
+                                          This is the tooltip text
+                                          <button
+                                            className="got-it-button"
+                                            onClick={hideTooltipText}
+                                          >
+                                            Got it
+                                          </button>
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whName}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhName(event.target.value);
+                                }}
+                                name="whName"
+                                id="whName"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Warehouse Address</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whAddress}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhAddress(event.target.value);
+                                }}
+                                name="whAddress"
+                                id="whAddress"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>GPS Coordinates</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whGpsCoordinates}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhGpsCoordinates(event.target.value);
+                                }}
+                                name="whGpsCoordinates"
+                                id="whGpsCoordinates"
+                              />
+                              <br></br>
+                              <button
+                                className="btn btn-secondary btn-lg"
+                                onClick={toggleMapVisibility}
+                              >
+                                Use Map For Help
+                              </button>
+                              {mapVisible && (
+                                <>
+                                  <br></br>
+                                  <div className="mt-3">
+                                    <p className="mb-3 select2-container">
+                                      <Label>
+                                        Enter Your WareHouse Location Pincode
+                                      </Label>
+                                    </p>
+                                    <Input
+                                      type="text"
+                                      maxLength={6}
+                                      value={pincode}
+                                      onChange={(event) => {
+                                        setPincode(event.target.value);
+                                      }}
+                                      name="pincode"
+                                      id="pincode"
+                                    />
+                                    <br></br>
+                                    <button
+                                      className="btn btn-primary btn-lg"
+                                      onClick={handlePincodeSearch}
+                                    >
+                                      Search
+                                    </button>
+                                    <br></br>
+                                    <MapComponent
+                                      lat={latLong[0]}
+                                      lng={latLong[1]}
+                                      setCoordinates={setWhGpsCoordinates}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* <MapContainer center={latLong} zoom={13} style={{ height: "100vh", width: "100%" }} onClick={handleMapClick}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      <Marker position={latLong}>
+        <Popup>
+          A pretty CSS3 popup. <br /> Easily customizable.
+        </Popup>
+      </Marker>
+    </MapContainer> */}
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>wareHouse Type</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whType}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhType(event.target.value);
+                                }}
+                                name="whType"
+                                id="whType"
+                              />
+                            </div>
+
+                            {/* <div className="mt-3">
+                        <p className="mb-3 select2-container">
+                          <Label>Total Space</Label>
+                        </p>
+                        <Input
+                          type="text"
+                          maxLength={50}
+                          defaultValue={whTotalSpace}
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                            setWhTotalSpace(event.target.value);
+                          }}
+                          name="whTotalSpace"
+                          id="whTotalSpace"
+                        />
+                      </div> */}
+                            <div className="mt-3">
+                              <p className="mb-3">
+                                <Label>Total Space</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                onChange={(event) => {
+                                  setWhTotalSpace(
+                                    event.target.value + " " + totalSpaceUnit
+                                  );
+                                }}
+                                name="whTotalSpace"
+                                id="whTotalSpace"
+                              />
+                              <Select
+                                options={units}
+                                onChange={handleLandAreaUnitChange}
+                                placeholder="Select unit"
+                                className="unit-dropdown"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3">
+                                <Label>Land Area</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                onChange={(event) => {
+                                  setInputArea(
+                                    event.target.value + " " + landAreaUnit
+                                  );
+                                }}
+                                name="whLandArea"
+                                id="whLandArea"
+                              />
+                              <Select
+                                options={units}
+                                onChange={handleTotalSpaceUnitChange}
+                                placeholder="Select unit"
+                                className="unit-dropdown"
+                              />
+
+                              <button
+                                className="conversion-button"
+                                style={{
+                                  backgroundColor: "white",
+                                  color: "black",
+                                  padding: "10px 20px",
+                                  borderRadius: "8px",
+                                  border: "2px solid #4CAF50",
+                                  marginTop: "15px",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                }}
+                                onClick={toggleConversionBox}
+                              >
+                                Need Help In Conversion
+                              </button>
+                              {showConversionBox && (
+                                <div
+                                  className="conversion-box"
+                                  style={{
+                                    backgroundColor: "#f9f9f9",
+                                    borderRadius: "8px",
+                                    padding: "20px",
+                                    marginTop: "10px",
+                                    boxShadow:
+                                      "0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)",
+                                  }}
+                                >
+                                  <select
+                                    value={conversionOption}
+                                    onChange={handleConversion}
+                                    style={{
+                                      borderRadius: "4px",
+                                      border: "1px solid #ccc",
+                                      padding: "8px 12px",
+                                      marginBottom: "10px",
+                                    }}
+                                  >
+                                    <option value="">
+                                      Select conversion option
+                                    </option>
+                                    <option value="sqft_to_sqm">
+                                      Square feet to square meters
+                                    </option>
+                                    <option value="sqm_to_sqft">
+                                      Square meters to square feet
+                                    </option>
+                                    <option value="acre_to_hectare">
+                                      Acres to hectares
+                                    </option>
+                                    <option value="hectare_to_acre">
+                                      Hectares to acres
+                                    </option>
+                                    <option value="acre_to_sqm">
+                                      Acres to square meters
+                                    </option>
+                                    <option value="sqm_to_acre">
+                                      Square meters to acres
+                                    </option>
+                                    <option value="hectare_to_sqm">
+                                      Hectares to square meters
+                                    </option>
+                                    <option value="sqm_to_hectare">
+                                      Square meters to hectares
+                                    </option>
+                                  </select>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Input
+                                      type="text"
+                                      maxLength={50}
+                                      value={inputArea}
+                                      onChange={handleAreaInput}
+                                      style={{
+                                        width: "40%",
+                                        marginRight: "10px",
+                                      }}
+                                    />
+                                    <span style={{ marginRight: "10px" }}>
+                                      →
+                                    </span>
+                                    <Input
+                                      type="text"
+                                      maxLength={50}
+                                      value={convertedArea}
+                                      readOnly
+                                      style={{
+                                        width: "40%",
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Container>
+                      </AccordionBody>
+                    </AccordionItem>
+                    <AccordionItem>
+                      <AccordionHeader targetId="2">
+                        Warehouse Building Specification
+                      </AccordionHeader>
+                      <AccordionBody accordionId="2">
+                        <Container fluid={true}>
+                          <div
+                            className="section__title-wrapper text-center mb-60"
+                            onClick={toggleCollapse2}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <br />
+                            <h2
+                              style={{ color: "white" }}
+                              className="section__title"
+                            ></h2>
+                            <br />
+                          </div>
+
+                          <div className="sign__form">
+                            <SolClient />
+                            <div className="mt-3">
+                              <br></br>
+                              <h4>
+                                <label>
+                                  {" "}
+                                  <b>Building Specifications Form</b>
+                                </label>
+                              </h4>
+                            </div>
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label> WH Roof Height</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whRoofHeight}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhRoofHeight(event.target.value);
+                                  }}
+                                  name="whRoofHeight"
+                                  id="whRoofHeight"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Roof Type</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whRoofType}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhRoofType(event.target.value);
+                                  }}
+                                  name="whRoofType"
+                                  id="whRoofType"
+                                />
+                              </div>
+
+                              <div className="mt-4">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH HVAC</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whHvac}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhHvac(event.target.value);
+                                  }}
+                                  name="whHvac"
+                                  id="whHvac"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Electrical</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whElectrical}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhElectrical(event.target.value);
+                                  }}
+                                  name="whElectrical"
+                                  id="whElectrical"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Flooring Type</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whFlooringType}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhFlooringType(event.target.value);
+                                  }}
+                                  name="whFlooringType"
+                                  id="whFlooringType"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Loading Dock Count</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whLoadingDockCount}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhLoadingDockCount(event.target.value);
+                                  }}
+                                  name="whLoadingDockCount"
+                                  id="whLoadingDockCount"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Loading Dock Height</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whLoadingDockHeight}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhLoadingDockHeight(event.target.value);
+                                  }}
+                                  name="whLoadingDockHeight"
+                                  id="whLoadingDockHeight"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Age</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whAge}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhAge(event.target.value);
+                                  }}
+                                  name="whAge"
+                                  id="whAge"
+                                />
+                              </div>
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WH Loading Dock Size</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whLoadingDockSize}
+                                  onChange={(
+                                    event: React.ChangeEvent<HTMLInputElement>
+                                  ) => {
+                                    setWhLoadingDockSize(event.target.value);
+                                  }}
+                                  name="whLoadingDockSize"
+                                  id="whLoadingDockSize"
+                                />
+                              </div>
+                              {/* <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Is Active?</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={isActive_buil_spec}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setIsActive_build_spec(event.target.value);
+            }}
+            name="isActive"
+            id="isActive"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Is Verified?</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={isVerified_buil_spec}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setIsVerified_build_spec(event.target.value);
+            }}
+            name="isVerified"
+            id="isVerified"
+          />
+        </div> */}
+
+                              <div className="mt-3">
+                                <p className="mb-3 select2-container">
+                                  <Label>WareHouse Id</Label>
+                                </p>
+                                <Input
+                                  type="text"
+                                  maxLength={50}
+                                  defaultValue={whId}
+                                  // onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                  //   setWhId(event.target.value);
+                                  // }}
+                                  name="whId"
+                                  id="whId"
+                                />
+                              </div>
+                              <div className="mt-3">
+                                <Button onClick={handleOpenModal}>
+                                  Open Image Upload Modal
+                                </Button>
+                                <ImageUploadModal
+                                  show={modalVisible}
+                                  onClose={handleModalClose}
+                                  onLocalUpload={handleLocalUpload}
+                                />
+                                <br />
+                                <Button
+                                  className="mt-1"
+                                  onClick={handleWeb3Upload}
+                                >
+                                  Submit
+                                </Button>
+                              </div>
+                            </form>
+                          </div>
+                        </Container>
+                      </AccordionBody>
+                    </AccordionItem>
+
+                    <AccordionItem>
+                      <AccordionHeader targetId="3">
+                        Warehouse Rental Specification
+                      </AccordionHeader>
+                      <AccordionBody accordionId="3">
+                        <Container fluid={true}>
+                          <div
+                            className="section__title-wrapper text-center mb-60"
+                            onClick={toggleCollapse3}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <br />
+                            <h2
+                              style={{ color: "white" }}
+                              className="section__title"
+                            ></h2>
+                            <br />
+                          </div>
+
+                          <div className="sign__form">
+                            <SolClient />
+                            <div className="mt-3">
+                              <br />
+                              <h4>
+                                <label>
+                                  {" "}
+                                  <b>Warehouse Rental Information Form</b>
+                                </label>
+                              </h4>
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label> Warehouse Rental ID</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalID}
+                                name="whRentalID"
+                                id="whRentalID"
+                                readOnly={true}
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Rental Created Timestamp</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalCreatedTimestamp}
+                                name="whRentalCreatedTimestamp"
+                                id="whRentalCreatedTimestamp"
+                                readOnly={true}
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Available For Rent Date</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalAvailableDate}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhRentalAvailableDate(event.target.value);
+                                }}
+                                name="whRentalAvailableDate"
+                                id="whRentalAvailableDate"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Minimum Lease Duration</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whMinLease}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhMinLease(event.target.value);
+                                }}
+                                name="whMinLease"
+                                id="whMinLease"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Maximum Lease Duration</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whMaxLease}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhMaxLease(event.target.value);
+                                }}
+                                name="whMaxLease"
+                                id="whMaxLease"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Rental Rate</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalRate}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhRentalRate(event.target.value);
+                                }}
+                                name="whRentalRate"
+                                id="whRentalRate"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Rental Unit</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalUnit}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhRentalUnit(event.target.value);
+                                }}
+                                name="whRentalUnit"
+                                id="whRentalUnit"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Security Deposit</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whSecurityDeposit}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhSecurityDeposit(event.target.value);
+                                }}
+                                name="whSecurityDeposit"
+                                id="whSecurityDeposit"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Lock-In Period</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whLockInPeriod}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhLockInPeriod(event.target.value);
+                                }}
+                                name="whLockInPeriod"
+                                id="whLockInPeriod"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Rental Increment</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentalIncrement}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhRentalIncrement(event.target.value);
+                                }}
+                                name="whRentalIncrement"
+                                id="whRentalIncrement"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Notice Period</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whNoticePeriod}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhNoticePeriod(event.target.value);
+                                }}
+                                name="whNoticePeriod"
+                                id="whNoticePeriod"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>Rent Free Period</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whRentFreePeriod}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhRentFreePeriod(event.target.value);
+                                }}
+                                name="whRentFreePeriod"
+                                id="whRentFreePeriod"
+                              />
+                            </div>
+
+                            <div className="mt-3">
+                              <p className="mb-3 select2-container">
+                                <Label>WareHouse ID</Label>
+                              </p>
+                              <Input
+                                type="text"
+                                maxLength={50}
+                                defaultValue={whId}
+                                onChange={(
+                                  event: React.ChangeEvent<HTMLInputElement>
+                                ) => {
+                                  setWhId(event.target.value);
+                                }}
+                                name="whId"
+                                id="whId"
+                              />
+                            </div>
+                            {/* <div className="mt-3">
+                     <p className="mb-3 select2-container">
+                      <Label>Is Active?</Label>
+                       </p>
+                        <Input
+                      type="text"
+                      maxLength={50}
+                      defaultValue={whRentalIsActive}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setWhRentalIsActive(event.target.value);
+                      }}
+                      name="whRentalIsActive"
+                      id="whRentalIsActive"
+                        />
+                      </div>
+
+                       <div className="mt-3">
+                         <p className="mb-3 select2-container">
+                         <Label>Is Verified?</Label>
+                       </p>
+                        <Input
+                        type="text"
+                        maxLength={50}
+                        defaultValue={whRentalIsVerified}
+                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setWhRentalIsVerified(event.target.value);
+                        }}
+                         name="whRentalIsVerified"
+                         id="whRentalIsVerified"
+                            />
+                        </div> */}
+                          </div>
+                        </Container>
+                      </AccordionBody>
+                    </AccordionItem>
+                  </Accordion>
+
+                  {/* <Container fluid={true}>
+  <div
+    className="section__title-wrapper text-center mb-60"
+    onClick={toggleCollapse4}
+    style={{ cursor: "pointer" }}
+  >
+    <br />
+    <h2 style={{ color: "white" }} className="section__title">
+      Customer Details
+    </h2>
+    <br />
+  </div>
+  <div className={`sign__wrapper white-bg ${isCollapsed4? "collapse" : ""}`}>
+    <div className="sign__form">
+      <SolClient />
+      <div className="mt-3">
+        <br></br>
+        <h4>
+          <label>
+            {" "}
+            <b>Customer Details Form</b>
+          </label>
+        </h4>
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Customer ID</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerId}
+            name="customerId"
+            id="customerId"
+            readOnly={true}
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Created Timestamp</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerCreatedTimestamp}
+            name="customerCreatedTimestamp"
+            id="customerCreatedTimestamp"
+            readOnly={true}
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Full Name</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerFullName}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerFullName(event.target.value);
+            }}
+            name="customerFullName"
+            id="customerFullName"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Email ID</Label>
+          </p>
+          <Input
+            type="email"
+            maxLength={50}
+            defaultValue={customerEmailId}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerEmailId(event.target.value);
+            }}
+            name="customerEmailId"
+            id="customerEmailId"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Phone Number</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerPhoneNumber}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerPhoneNumber(event.target.value);
+            }}
+            name="customerPhoneNumber"
+            id="customerPhoneNumber"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Entity Type</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerEntity}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerEntity(event.target.value);
+            }}
+            name="customerEntity"
+            id="customerEntity"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Entity Name</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerEntityName}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerEntityName(event.target.value);
+            }}
+            name="customerEntityName"
+            id="customerEntityName"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Registered Address</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerEntityRegisteredAddress}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerEntityRegisteredAddress(event.target.value);
+            }}
+            name="customerEntityRegisteredAddress"
+            id="customerEntityRegisteredAddress"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Customer PAN</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerEntityPan}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerEntityPan(event.target.value);
+            }}
+            name="customerEntityPan"
+            id="customerEntityPan"
+          />
+        </div>
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Customer ID Document Type</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerIdDocType}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerIdDocType(event.target.value);
+            }}
+            name="customerIdDocType"
+            id="customerIdDocType"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Customer ID Document Number</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerIdDocNumber}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setCustomerIdDocNumber(event.target.value);
+            }}
+            name="customerIdDocNumber"
+            id="customerIdDocNumber"
+          />
+        </div>
+        <div className="mt-3">
+                     <p className="mb-3 select2-container">
+                      <Label>Is Active?</Label>
+                       </p>
+                        <Input
+                      type="text"
+                      maxLength={50}
+                      defaultValue={isActive_wh_cust_det}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setIsActive_wh_cust_det(event.target.value);
+                      }}
+                      name="whRentalIsActive"
+                      id="whRentalIsActive"
+                        />
+                      </div>
+
+                       <div className="mt-3">
+                         <p className="mb-3 select2-container">
+                         <Label>Is Verified?</Label>
+                       </p>
+                        <Input
+                        type="text"
+                        maxLength={50}
+                        defaultValue={isVerified_wh_cust_det}
+                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                          setIsVerified_wh_cust_det(event.target.value);
+                        }}
+                         name="whRentalIsVerified"
+                         id="whRentalIsVerified"
+                            />
+                        </div>
+                        
+                        <div className="mt-3">
+                         <br></br>
+                         <button type="submit" className="m-btn m-btn-4 w-100">
+                         {" "}
+                        <span></span> Submit
+                       </button>
+                       </div>
+                </form>
+              </div>
+            </div>
+        </Container> */}
+                  {/* <Container fluid={true}>
+  <div
+    className="section__title-wrapper text-center mb-60"
+    onClick={toggleCollapse5}
+    style={{ cursor: "pointer" }}
+  >
+    <br />
+    <h2 style={{ color: "white" }} className="section__title">
+      Requirement Details
+    </h2>
+    <br />
+  </div>
+  <div className={`sign__wrapper white-bg ${isCollapsed5? "collapse" : ""}`}>
+    <div className="sign__form">
+      <SolClient />
+      <div className="mt-3">
+        <br></br>
+        <h4>
+          <label>
+            {" "}
+            <b>Requirement Details Form</b>
+          </label>
+        </h4>
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label> Requirement Post ID</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementPostId}
+            name="requirementPostId"
+            id="requirementPostId"
+            readOnly={true}
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Created Timestamp</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementCreatedTimestamp}
+            name="requirementCreatedTimestamp"
+            id="requirementCreatedTimestamp"
+            readOnly={true}
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Requirement Location</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementLocation}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementLocation(event.target.value);
+            }}
+            name="requirementLocation"
+            id="requirementLocation"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Requirement Max Distance</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementMaxDistance}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementMaxDistance(event.target.value);
+            }}
+            name="requirementMaxDistance"
+            id="requirementMaxDistance"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Requirement Area</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementArea}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementArea(event.target.value);
+            }}
+            name="requirementArea"
+            id="requirementArea"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Warehouse Type Required</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementWh}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementWh(event.target.value);
+            }}
+            name="requirementWh"
+            id="requirementWh"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Duration</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementDuration}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementDuration(event.target.value);
+            }}
+            name="requirementDuration"
+            id="requirementDuration"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Other Details</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementOtherDetails}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementOtherDetails(event.target.value);
+            }}
+            name="requirementOtherDetails"
+            id="requirementOtherDetails"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Rate</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={requirementRate}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setRequirementRate(event.target.value);
+            }}
+            name="requirementRate"
+            id="requirementRate"
+          />
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-3 select2-container">
+            <Label>Customer Id</Label>
+          </p>
+          <Input
+            type="text"
+            maxLength={50}
+            defaultValue={customerId}
+            // onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            //   setCustomerId(event.target.value);
+            // }}
+            name="customerId"
+            id="customerId"
+          />
+        </div>
+        <div className="mt-3">
+                     <p className="mb-3 select2-container">
+                      <Label>Is Active?</Label>
+                       </p>
+                        <Input
+                      type="text"
+                      maxLength={50}
+                      defaultValue={isActive_wh_req_det}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setIsActive_wh_req_det(event.target.value);
+                      }}
+                      name="isActive_wh_req_det"
+                      id="isActive_wh_req_det"
+                        />
+                      </div>
+
+                       <div className="mt-3">
+                         <p className="mb-3 select2-container">
+                         <Label>Is Verified?</Label>
+                       </p>
+                        <Input
+                        type="text"
+                        maxLength={50}
+                        defaultValue={isVerified_wh_req_det}
+                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                          setIsVerified_wh_req_det(event.target.value);
+                        }}
+                         name="isVerified_wh_req_det"
+                         id="isVerified_wh_req_det"
+                            />
+                        </div>
+                        
+                        <div className="mt-3">
+                         <br></br>
+                         <button type="submit" className="m-btn m-btn-4 w-100">
+                         {" "}
+                        <span></span> Submit
+                       </button>
+                       </div>
+                </form>
+              </div>
+            </div>
+        </Container> */}
+
+                  <form onSubmit={handleSubmit(onSubmit)}>
+                    <div className="mt-3">
+                      <br></br>
+                      <button type="submit" className="m-btn m-btn-4 w-100">
+                        {" "}
+                        Submit
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </>
+            )}
+          </Container>
+        </React.Fragment>
+      ) : (
+        <>
+          <div className="column d-flex align-items-xl-center justify-content-center">
+            <h3 className="m-3 p-3">Please LogIn to continue</h3>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+export default NewPost;

@@ -1,0 +1,31 @@
+.contactOwner{
+    background-color: rgb(24, 33, 83);
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    
+
+}
+.contactDetails{
+    position: relative;
+}
+.imageGallery{
+    background-color: rgb(41, 56, 138);
+    padding: 20px;
+    border-radius: 20px;
+}
+.imageGallery h2{
+    color: white;
+}
+.warehouseDetails{
+    background-color: rgb(69, 69, 213);
+    padding: 30px 30px 30px 40px;
+    border-radius: 20px;
+
+}
+.warehouseDetails p{
+    color: rgb(239, 239, 239);
+}
+.parent{
+    background-color: rgba(8, 14, 43, 0.952);
+}

@@ -1,0 +1,29 @@
+{
+    "priceRanges": [
+      {
+        "range": "A",
+        "minPrice": 1000,
+        "maxPrice": 100000
+      },
+      {
+        "range": "B",
+        "minPrice": 100001,
+        "maxPrice": 300000
+      },
+      {
+        "range": "C",
+        "minPrice": 300001,
+        "maxPrice": 500000
+      },
+      {
+        "range": "D",
+        "minPrice": 500001,
+        "maxPrice": 100000
+      },
+      {
+        "range": "Type E",
+        "minPrice": 1000001,
+        "maxPrice": 2000000
+      }
+    ]
+  }
