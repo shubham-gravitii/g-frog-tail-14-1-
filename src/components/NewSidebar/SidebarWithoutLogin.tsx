@@ -32,8 +32,9 @@ const NewSidebar = () => {
       <div className="custom-body ">
         <div
           className={
-            sticky ? "sticky header__area black-bg" : "header__area black-bg"
+            sticky ? "sticky header__area" : "header__area"
           }
+          style={{backgroundColor:"#058283"}}
           id="header-sticky"
         >
           <div className="container p-2">
@@ -41,11 +42,13 @@ const NewSidebar = () => {
               <div className="col d-flex align-items-center">
                 <div className="logo flex-grow-1">
                   <Link href="/">
+                    {/* <a > */}
                       <img
                         src="assets/img/logo/cropped-logo.png"
                         alt="logo"
                         width="50"
                       />
+                    {/* </a> */}
                   </Link>
                 </div>
                 <div className="sidebar-toggle-btn w-10 ml-2" onClick={handleShow}>
@@ -77,11 +80,9 @@ const NewSidebar = () => {
                       <ul className="nounderline">
                         <div className="single_link option iconAdd">
                           <li>
-                            <Link href="/login"
-                            
-                              onClick={handleLinkClick}
-                              style={{ color: "white", textDecoration: "none" }}
-                            >
+                            <Link href="/login" 
+                             onClick={handleLinkClick}
+                              style={{ color: "white", textDecoration: "none" }}>
                               {/* <a> */}
                                 <FaUser />
                                 Sign Up/Sign In

@@ -342,10 +342,10 @@ const ViewPost = () => {
         <>
             <React.Fragment>``
 
-                <div style={{ minHeight: "100vh" }} className="black-bg">
+            <div style={{ minHeight: "100vh" }}>
                     <div className="section__title-wrapper text-center">
-                        <br />
-                        <h2 style={{ color: "white" }} className="section__title">
+                        
+                        <h2 style={{ color: "white" }} className="section__title mt-2">
                             View Post for Customer
                         </h2>
                         <p style={{ color: "white" }} >
@@ -357,7 +357,7 @@ const ViewPost = () => {
 
 
                     <Row className="mx-auto">
-                        <Col xs="6" sm="2" md="2" lg="2" className="d-block d-sm-none">
+                        <Col xs="6" sm="2" md="2" lg="2" className="d-block d-md-none">
                             <Button
                                 variant="light p-2"
                                 onClick={handleFilterButtonClick}
@@ -378,16 +378,16 @@ const ViewPost = () => {
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu>
                                     <Dropdown.Item>
-                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("ascLease") }}>Lease: Low to High</button>
+                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("ascLease") }}>Duration: Low to High</button>
                                     </Dropdown.Item>
                                     <Dropdown.Item>
-                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("descLease") }}>Lease: High to Low</button>
+                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("descLease") }}>Duration: High to Low</button>
                                     </Dropdown.Item>
                                     <Dropdown.Item>
-                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("ascRentalRate") }}>Rental Rate: Low to High</button>
+                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("ascRentalRate") }}>Rent: Low to High</button>
                                     </Dropdown.Item>
                                     <Dropdown.Item>
-                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("descRentalRate") }}>Rental Rate: High to Low</button>
+                                        <button className="btn btn-link nav-link" onClick={() => { handleSort("descRentalRate") }}>Rent: High to Low</button>
                                     </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
@@ -399,7 +399,7 @@ const ViewPost = () => {
 
                     <div>
                         <Row className="mx-auto">
-                            <Col xs="12" sm="4" md="4" lg="2" className="py-3 my-3 d-none d-sm-block">
+                            <Col xs="12" sm="12" md="4" lg="4" xl="3" className="py-3 my-3 d-none d-md-block">
                                 <FilterPost
                                     RentalFields={data}
                                     BasicFields={warehouseBasicFields}
@@ -412,7 +412,7 @@ const ViewPost = () => {
                             </Col>
 
                             {/* Posts Column */}
-                            <Col xs="12" sm="8" md="8" lg="10">
+                            <Col xs="12" sm="12" md="8" lg="8" xl="9">
                                 {isLoading ? (
                                     <div className="text-center p-5">
                                         <Spinner className="spinner-border text-light" />
@@ -433,19 +433,22 @@ const ViewPost = () => {
                                             //         SetRentalDetails={handleSetRentalDetails}
                                             //     />
                                             // </Col>
-                                            <Col key={i} xs="12" sm="6" md="4" lg="4" className="py-3">
+                                           
+                                            <Col key={i} xs="12" sm="6" md="6" lg="6" xl="4" className="py-3">
                                                 <GalleryComponent
                                                     RentalFields={e}
-                                                    // BasicFields={warehouseBasicFields}
-                                                    // SpecificationFields={warehouseSpecificationFields}
-                                                    // SetBasicDetails={handleSetBasicDetails}
-                                                    // SetSpecificationDetails={handleSetSpecificationDetails}
-                                                    // SetRentalDetails={handleSetRentalDetails}
+                                                // BasicFields={warehouseBasicFields}
+                                                // SpecificationFields={warehouseSpecificationFields}
+                                                // SetBasicDetails={handleSetBasicDetails}
+                                                // SetSpecificationDetails={handleSetSpecificationDetails}
+                                                // SetRentalDetails={handleSetRentalDetails}
                                                 />
+
+                                             
                                             </Col>
                                         ))}
 
-                                        <Row className="mx-auto justify-content-md-center">
+                                        <Row className="mx-auto justify-content-md-center mt-4">
                                             <div className="col-md-auto">
                                                 <nav aria-label="Page navigation">
                                                     <ul className="pagination">
@@ -514,7 +517,7 @@ const ViewPost = () => {
                 <ScrollToTop
                     smooth
                 />
-                
+
             </React.Fragment>
         </>
     );
