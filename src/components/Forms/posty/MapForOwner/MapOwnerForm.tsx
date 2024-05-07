@@ -6,7 +6,7 @@ import L from 'leaflet';
 import Logo from "../../assets/images/map-marker-svgrepo-com.svg";
 import LocationMarker from '../../LocationMarker';
 import { Button } from 'reactstrap';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 
 const Mapplsmap = ({ Lattitude, Longitude ,Address,onChildData }) => {

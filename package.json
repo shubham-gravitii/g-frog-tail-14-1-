@@ -7,7 +7,7 @@
     "dev:nonprod": "env-cmd -f .env.nonprod next dev",
     "build": "next build",
     "export": "next build && next export",
-    "start": "NODE_ENV=production node server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,13 +16,22 @@
     "@aws-amplify/auth": "^6.0.13",
     "@aws-amplify/ui-react": "^6.1.4",
     "@emailjs/browser": "^3.11.0",
+    "@emotion/styled": "^11.11.5",
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@mui/icons-material": "^5.15.16",
+    "@mui/material": "^5.15.16",
     "@vtaits/react-color-picker": "^0.1.2",
     "antd": "^5.10.1",
     "aws-amplify": "^6.0.17",
     "axios": "^1.6.8",
     "body-parser": "^1.20.2",
     "bootstrap": "^5.3.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "flatpickr": "^4.6.13",
     "form-data": "^4.0.0",
     "formidable": "^3.5.1",
@@ -54,17 +63,19 @@
     "react-toastify": "^10.0.5",
     "reactstrap": "^9.2.2",
     "sass": "^1.53.0",
+    "sharp": "^0.33.3",
     "slick-carousel": "^1.8.1",
     "styled-components": "^6.1.8",
     "sweetalert2": "^11.7.12",
     "web3.storage": "^4.5.5"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
-    "eslint-config-next": "14.1.4"
+    "eslint-config-next": "14.1.4",
+    "typescript": "^5"
   }
 }

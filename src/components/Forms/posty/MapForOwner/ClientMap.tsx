@@ -50,23 +50,41 @@ const Client = ({ warehouseId, ownerId,locationText,setlocationText }) => {
 
 
   const handleSearchText = async (name) => {
-    setlocationText(name)
-    setconfirmNo(false);
-    setshowsuggest(false);
-    setsearchText(name);
-    fetch('/api/geocode', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      setLat(data.lat);
-      setLong(data.lng);
-      setconfirm(true);
-      // Assuming setWhGpsCoordinates and setconfirm are handled elsewhere or adjusted accordingly
-    })
-    .catch(error => console.error('Error:', error));
+    setlocationText(name);
+    if (!name.length){
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            setLat(latitude);
+            setLong(longitude);
+            setconfirm(true);
+          },
+          error => console.error('Error getting location:', error.message)
+        );
+      } else {
+        console.error('Geolocation is not supported by your browser.');
+      }
+    }else{
+      
+      setconfirmNo(false);
+      setshowsuggest(false);
+      setsearchText(name);
+      fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        setLat(data.lat);
+        setLong(data.lng);
+        setconfirm(true);
+        // Assuming setWhGpsCoordinates and setconfirm are handled elsewhere or adjusted accordingly
+      })
+      .catch(error => console.error('Error:', error));
+    }
+   
   };
 
   const handleNo = () => {
@@ -92,6 +110,7 @@ const Client = ({ warehouseId, ownerId,locationText,setlocationText }) => {
       }
     } else {
       setNames([]);
+      setshowsuggest(false);
     }
   }
 
@@ -124,8 +143,11 @@ const Client = ({ warehouseId, ownerId,locationText,setlocationText }) => {
         </Row>
         {showsuggest &&
           <ul >
-            {names.map((result) => (
-              <li className='p-1 mb-2 d-block' onClick={() => {
+             {names.map((result) => (
+              <li 
+              className='list-group-item p-3 mb-2 d-block' 
+              style={{backgroundColor: "#f0f0f0", cursor:"pointer"}} 
+              onClick={() => {
                 const name = result.placeName + " " + result.placeAddress;
                 handleSearchText(name)
               }}
@@ -138,7 +160,7 @@ const Client = ({ warehouseId, ownerId,locationText,setlocationText }) => {
 
         {confirm && (
           <>
-              <div className=' ' style={{  width: "100%" }}>
+              <div className='mt-2' style={{  width: "100%" }}>
                 <Mapplsmap Lattitude={Lat} Longitude={Long} Address={searchText} onChildData={handleChildData} mapStyle={{ width: '100%' }}/>
               </div>
           </>)

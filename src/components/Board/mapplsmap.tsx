@@ -26,7 +26,7 @@ import L from "leaflet";
 import axios from "axios";
 import * as Constants from "../../utils/constants";
 import { useAuth } from "../../contexts/UserContext"; 
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const Mapplsmap = ({Lattitude, Longitude}) => {
   const mapRef = useRef();

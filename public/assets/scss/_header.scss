@@ -393,7 +393,8 @@ $color_more: #FC202C;
     & .line{
         width: 30px;
         height: 3px;
-        background-color: $m-blue;
+        // background-color: $m-blue;
+        background-color: white;
         display: block;
         margin: 6px auto;
         -webkit-transition: all 0.3s ease-in-out;
@@ -426,7 +427,8 @@ $color_more: #FC202C;
         top: 0;
         width: 320px;
         height: 100%;
-        background: #1b133f  none repeat scroll 0 0;
+        // background: #1b133f  none repeat scroll 0 0;
+        background: #058283 none repeat scroll 0 0;
         overflow-y: scroll;
         @include box-shadow(-5px 0 20px -5px rgba(0, 0, 0, 0.5));
         -webkit-transition: all .3s cubic-bezier(0.785, 0.135, 0.15, 0.86);
@@ -447,7 +449,8 @@ $color_more: #FC202C;
         left: 0;
         width: 100%;
         & .nav-tabs{
-            background: #130d2d;
+            // background: #130d2d;
+            background: #058283;
             border-bottom: 0;
             & .nav-item{
                 text-align: center;
@@ -462,7 +465,8 @@ $color_more: #FC202C;
                     @include border-radius(0);
                     border-bottom: 2px solid transparent;
                     &.active{
-                        background: #1b133f;
+                        // background: #1b133f;
+                        background: #058283;
                     }
                     &:hover{
                         background: $white;
@@ -754,7 +758,8 @@ $color_more: #FC202C;
     width: 300px ;
 }
 .offcanvas {
-    background: #1b133f none repeat scroll 0 0;
+    //background: #1b133f none repeat scroll 0 0;
+    background: #058283 none repeat scroll 0 0;
 }
 .offcanvas-header{
     padding: 30px;
@@ -777,8 +782,12 @@ $color_more: #FC202C;
     width: 30px;
     height: 30px;
     margin: 0;
-    border: 1px solid #2a3a57;
+    // border: 1px solid #2a3a57;
+    border: 2px solid #fff;
     border-radius: 50%;
+}
+.offcanvas-header .btn-close:hover{
+    transform: scale(0.9);
 }
 .offcanvas-header .logo{
     margin-top: 0px;
@@ -831,10 +840,15 @@ $color_more: #FC202C;
 .iconAdd{
     position: relative;
     color: white;
-    border-bottom: 1px solid #2a3a57;
+    // border-bottom: 1px solid #2a3a57;
+    border-bottom: 1px solid #fff;
     padding: 20px 0;    
     font-size: 22px;  //newly added
     text-decoration: none;
+    transition: 0.5s ease;
+}
+.iconAdd:hover{
+    border-bottom: 1px solid #000;
 }
 .sub_child.iconAdd{
     padding: 0px;
@@ -864,7 +878,8 @@ $color_more: #FC202C;
 .icon_close{
     position: relative;
     color: white;
-    border-bottom: 1px solid #2a3a57;
+    // border-bottom: 1px solid #2a3a57;
+    border-bottom: 1px solid #fff;
     padding: 10px 0;
 }
 .sub_child.icon_close{
@@ -883,7 +898,8 @@ $color_more: #FC202C;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-left: 1px solid #2a3a57;
+    border-left: 1px solid #fff;
+    border-left: 1px solid #fff;
 }
 .sub_child.icon_close::before{
     padding: 20px;

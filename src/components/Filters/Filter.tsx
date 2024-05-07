@@ -424,11 +424,9 @@ const FilterPost = ({
                                     <Input
                                         className="m-1 p-1"
                                         type="checkbox"
-                                        onChange={() =>
-                                            handleTypeCheckboxChange("Certified Warehouse")
-                                        }
+                                        onChange={() => handleTypeCheckboxChange("Custom Bonded")}
                                     />
-                                    Certified Warehouse
+                                    Custom Bonded
                                 </Label>
                             </div>
                             <div>
@@ -436,7 +434,29 @@ const FilterPost = ({
                                     <Input
                                         className="m-1 p-1"
                                         type="checkbox"
-                                        onChange={() => handleTypeCheckboxChange("Others")}
+                                        onChange={() => handleTypeCheckboxChange("Open Land")}
+                                    />
+                                    Open Land
+                                </Label>
+                            </div>
+                            <div>
+                                <Label>
+                                    <Input
+                                        className="m-1 p-1"
+                                        type="checkbox"
+                                        onChange={() => handleTypeCheckboxChange("Tarped")}
+                                    />
+                                    Tarped
+                                </Label>
+                            </div>
+                            <div>
+                                <Label>
+                                    <Input
+                                        className="m-1 p-1"
+                                        type="checkbox"
+                                        onChange={() =>
+                                            handleTypeCheckboxChange("Others")
+                                        }
                                     />
                                     Others
                                 </Label>
@@ -662,13 +682,13 @@ const FilterPost = ({
                     </div>
                     <hr></hr>
                     <div>
-                        <div className="d-flex justify-content-evenly">
-                            <div className="floating-buttons-container">
+                        <div >
+                            <div className="d-flex justify-content-center align-items-center">
 
-                                <Button className="m-3" type="submit" color="info" onClick={handleResetFilters}>
+                                <Button className="mt-3 mb-3 me-2" type="submit" color="info" onClick={handleResetFilters}>
                                     Reset
                                 </Button>
-                                <Button className="m-3" type="submit" color="success" onClick={handleApplyFilter}>
+                                <Button className="mt-3 mb-3" type="submit" color="success" onClick={handleApplyFilter}>
                                     Apply
                                 </Button>
 

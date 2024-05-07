@@ -229,12 +229,10 @@ console.log(RentalFields)
                                     {/* <h3 className="font-weight-bold text-md-left">WareHouse Chennai</h3>
                                     <p className="font-weight-normal text-sm-left mb-4 mb-lg">Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam, voluptas quam dicta iusto, blanditiis</p> */}
                                     {/* <h6 className="text-truncate mb-4 mb-lg">Warehouse ID: {wh_id}</h6> */}
-                                    <h6 className="text-truncate mb-4 mb-lg">Warehouse Rent rate: {wh_rental_rate}</h6>
-                                    <h6 className="text-truncate mb-4 mb-lg"
-                                    >Warehouse Available Date:{wh_rental_available_date} </h6>
+                                    <h6 className="text-truncate mb-3">Rent: {wh_rental_rate}</h6>
+                                    <h6 className="text-truncate mb-4">Available Date:{wh_rental_available_date} </h6>
                                     <Button
-                                        color="light"
-                                        className="btn btn-outline-primary btn-sm w-100"
+                                        className="w-100"
                                         onClick={() => togglemodal(wh_id)}
                                     >
                                         View More Details
