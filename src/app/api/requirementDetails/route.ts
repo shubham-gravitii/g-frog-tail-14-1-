@@ -1,154 +1,143 @@
 //@ts-nocheck
 // import { getSession } from 'next-auth/react';
-import axios, { AxiosRequestConfig } from "axios";
+import axios from "axios";
+import * as Constants from "../../../utils/constants";
 import { NextResponse } from "next/server";
-// import { verifyToken } from "../../utils/lib/middleware";
 import { fetchApiSettings } from "../../../utils/ssm";
-
 export async function GET(req, res) {
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
   const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
     await fetchApiSettings();
-
-  const apiToken = req.headers["api-token"];
-  console.log(apiToken);
-  // const decodedToken = decodeToken(apiToken);
-  // console.log(decodedToken)
-  // const verifiedToken = await verifyToken(apiToken as string)
-
-  // console.log(verifiedToken)
-  const headers: AxiosRequestConfig["headers"] = {
+  const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
-    "Content-Type": "application/json",
   };
-
   let isFirstParam = true;
-  let updatedBasicDetails = "";
+  let updatedRequirementsDetails = "";
 
   for (const key in data) {
     if (data[key]) {
-      const formattedKey =
-        key === "latitude" || key === "longitude" ? key : key.toUpperCase();
-      updatedBasicDetails +=
-        (isFirstParam ? "?" : "&") + `${formattedKey}=${data[key]}`;
+      updatedRequirementsDetails +=
+        (isFirstParam ? "?" : "&") + `${key.toUpperCase()}=${data[key]}`;
       isFirstParam = false;
     }
   }
 
   const response = await axios.get(
-    `${apiGatewayHost}/wh_basic_details${updatedBasicDetails}`,
+    `${apiGatewayHost}/wh_requirement_details${updatedRequirementsDetails}`,
     {
+      params: data,
       headers: headers,
     }
   );
   const newData = response.data.response;
-  console.log(newData);
   return NextResponse.json({ response: newData }, { status: 200 });
 }
 
 export async function POST(req, res) {
-  try {
-    console.log("basic details post request")
-    const dataReq = new URLSearchParams(req.nextUrl.searchParams);
+  const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
-  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
-    await fetchApiSettings();
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
   };
 
   console.log(data);
   let isFirstParam = true;
-  let updatedBasicDetails = "";
+  let updatedRequirementsDetails = "";
 
   for (const key in data) {
     if (data[key]) {
       const formattedKey =
         key === "latitude" || key === "longitude" ? key : key.toUpperCase();
-      updatedBasicDetails +=
+      updatedRequirementsDetails +=
         (isFirstParam ? "?" : "&") + `${formattedKey}=${data[key]}`;
       isFirstParam = false;
     }
   }
-  console.log("Hellllo");
-  console.log(updatedBasicDetails);
-  console.log(apiGatewayHost)
-  const response = await axios.post(
-    `${apiGatewayHost}/wh_basic_details${updatedBasicDetails}`,
-    {},
-    {
-      headers: headers,
-    }
-  );
-  const newData = response.data.response;
-  console.log(newData);
-  return NextResponse.json({ response: newData }, { status: 200 });
-  } catch (error) {
+
+  const queryParams = new URLSearchParams(data).toString();
+  console.log(updatedRequirementsDetails)
+  try {
+    const response = await axios.post(
+      `${apiGatewayHost}/wh_requirement_details${updatedRequirementsDetails}`,
+      {},
+      {
+        headers: headers,
+        
+      }
+    );
+
+    const newData = response.data.response;
+    console.log(newData);
+
+    return NextResponse.json({ response: newData }, { status: 200 });
+} catch (error) {
+    console.error(
+      "Error:",
+      error.response ? error.response.data : error.message
+    );
     console.log(error.message)
-    return NextResponse.json({error:error},{status:500});
+    // console.log(error)
+    return NextResponse.json({ error:"Internal Server Error"  }, { status: 500 });
   }
 }
 
-export async function PUT(req, res) {
+export async function PUT( req, res) {
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
-  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
-    await fetchApiSettings();
-  let isFirstParam = true;
-  let updatedBasicDetails = "";
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
 
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
   };
-
+  let isFirstParam = true;
+  let newRequirementDetails = "";
   for (const key in data) {
     if (data[key]) {
       const formattedKey =
         key === "latitude" || key === "longitude" ? key : key.toUpperCase();
-      updatedBasicDetails +=
+      newRequirementDetails +=
         (isFirstParam ? "?" : "&") + `${formattedKey}=${data[key]}`;
       isFirstParam = false;
     }
   }
-  console.log(updatedBasicDetails)
   const response = await axios.put(
-    `${apiGatewayHost}/wh_basic_details${updatedBasicDetails}`,
+    `${apiGatewayHost}/wh_requirement_details${newRequirementDetails}`,
     {},
     {
       headers: headers,
     }
   );
-
   const newData = response.data.response;
   console.log(newData);
   return NextResponse.json({ response: newData }, { status: 200 });
+
 }
 
 export async function DELETE(req, res) {
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
-  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
-    await fetchApiSettings();
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
   };
 
-  const response = await axios.delete(`${apiGatewayHost}/wh_basic_details`, {
-    params: data,
-    headers: headers,
-  });
+  const response = await axios.delete(
+    `${apiGatewayHost}/wh_requirement_details`,
+    {},
+    {
+      params: data,
+      headers: headers,
+    }
+  );
   const newData = response.data.response;
+
   console.log(newData);
   return NextResponse.json({ response: newData }, { status: 200 });
+
 }
