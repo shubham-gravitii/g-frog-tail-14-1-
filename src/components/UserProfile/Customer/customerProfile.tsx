@@ -103,7 +103,7 @@ const CustomerProfile = () => {
       axios
         .get(Constants.local_api_gateway_host + `/customerDetails`)
         .then((response) => {
-          const userExists = response.data.response.response.length > 0;
+          const userExists = response.data.response?.response.length > 0;
           console.log("get customer details ----->")
           // console.log(userExists)
           setUserExistsDB(userExists)

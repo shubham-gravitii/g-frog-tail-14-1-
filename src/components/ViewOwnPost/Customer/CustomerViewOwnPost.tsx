@@ -68,6 +68,7 @@ const CustomerViewOwnPost = () => {
             console.log(data);
             const totalCount = data.response[0].count;
             console.log(Math.floor(totalCount / itemsPerPage));
+            console.log(data.response[0])
             console.log(data.response[0].min);
             setTotalPages(Math.floor(totalCount / itemsPerPage));
             setpaginationId(data.response[0].min);
@@ -80,11 +81,12 @@ const CustomerViewOwnPost = () => {
 
     const getCustomerDetails = async (id: string) => {
         try {
-            const response = await axios.get(Constants.local_api_gateway_host + `/customerDetails/?CUSTOMER_EMAIL_ID=${id}`);
-            const userExists = response.data.response.length > 0;
-            console.log(response.data.response);
+            const response = await axios.get(Constants.local_api_gateway_host + `/customerDetails`);
+            const userExists = response.data.response?.response.length > 0;
+            console.log("Logging customer details")
+            console.log(response.data.response?.response);
             if (userExists) {
-                const customerIdResponse = response.data.response[0].customer_id;
+                const customerIdResponse = response.data.response?.response[0].customer_id;
                 setCustomerId(customerIdResponse);
                 console.log(customerIdResponse);
             }

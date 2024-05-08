@@ -1,3 +1,4 @@
+//@ts-nocheck
 import {
   fetchAuthSession,
   getCurrentUser,
@@ -16,8 +17,8 @@ export async function middleware(request: NextRequest, response: NextResponse) {
           data = await getCurrentUser(contextSpec);
           let data1 = await fetchUserAttributes(contextSpec);
           data = Object.assign(data, data1);
-          console.log("user data from amplify");
-          console.log(data);
+          // console.log("user data from amplify");
+          // console.log(data);
           // console.log(data)
 
           return session.tokens !== undefined;
@@ -48,16 +49,16 @@ export async function middleware(request: NextRequest, response: NextResponse) {
 
     headers.set("userData", JSON.stringify(data));
     return NextResponse.next({ request: { headers } });
-  } catch (error) {
+  } catch (error:any) {
     console.log("Error in middleware")
-    console.log(error)
+    console.log(error.message)
     return NextResponse.json({error},{status:405})
   }
 }
 
 export const config = {
   matcher: [
-    "/api/:path*",
+    // "/api/:path*",
     "/private",
     /*
      * Match all request paths except for the ones starting with:

@@ -9,7 +9,7 @@ export async function GET(req, res) {
   const data = Object.fromEntries(dataReq.entries());
   const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
     await fetchApiSettings();
-
+  console.log("rental details get request")
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
@@ -25,7 +25,7 @@ export async function GET(req, res) {
       isFirstParam = false;
     }
   }
-
+  console.log(updatedRentalDetails)
   const response = await axios.get(
     `${apiGatewayHost}/wh_rental_information${updatedRentalDetails}`,
     {
@@ -38,9 +38,12 @@ export async function GET(req, res) {
 }
 
 export async function POST(req, res) {
-  const headerData = getHeaderData();
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
+  console.log("rental details post request")
+
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
+    await fetchApiSettings();
   console.log(data);
 
   const headers = {
@@ -72,9 +75,10 @@ export async function POST(req, res) {
 }
 
 export async function PUT(req, res) {
-  const headerData = getHeaderData();
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
+    await fetchApiSettings();
   console.log(data);
 
   const headers = {
@@ -109,6 +113,10 @@ export async function PUT(req, res) {
 }
 
 export async function DELETE(req, res) {
+  const dataReq = new URLSearchParams(req.nextUrl.searchParams);
+  const data = Object.fromEntries(dataReq.entries());
+  const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
+    await fetchApiSettings();
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,

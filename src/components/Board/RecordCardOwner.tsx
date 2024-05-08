@@ -14,7 +14,7 @@ import { ZoomIn, ZoomOut } from "react-feather"
 import * as Constants from "../../utils/constants"
 import { argThresholdOpts } from "moment"
 import Swal from 'sweetalert2';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useAuth } from "../../contexts/UserContext"
 import EnquiryForm from "../Forms/EnquiryForm/EnquiryForm"
 

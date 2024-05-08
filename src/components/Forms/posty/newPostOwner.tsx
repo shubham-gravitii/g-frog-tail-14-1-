@@ -2,6 +2,8 @@
 // @ts-nocheck
 'use client'
 import React, { useState, useEffect, useContext } from 'react'
+
+
 import FormData from 'form-data'
 import Form from 'react-bootstrap/Form';
 import Overlays from '../../Overlays'
@@ -58,7 +60,7 @@ const NewPostOwner = () => {
     const [rentalDetailsPaginationId, setRentalDetailsPaginationId] = useState()
     const [specificationDetailsPaginationId, setSpecificationDetailsPaginationId] = useState()
     const [userExistsDB, setUserExistsDB] = useState(false);
-    
+
     const [maxDuration, setmaxDuration] = useState({
         "duration": "",
         "Unit": ""
@@ -174,7 +176,7 @@ const NewPostOwner = () => {
     const [specRoofHeight, setSpecRoofHeight] = useState('');
     const [specRoofType, setSpecRoofType] = useState('');
     // const [specAge, setSpecAge] = useState('');
-    const [step, setStep] = useState(0)
+    const [step, setStep] = useState(3)
     const [imagesData, setImagesData] = useState([]);
     const [newCID, setDeletedCid] = useState<StorageCidItem[]>([]);
     const [newImages, setNewImages] = useState([]);
@@ -366,6 +368,7 @@ const NewPostOwner = () => {
         try {
             const res = await axios.get(Constants.local_api_gateway_host + '/rentalDetailsSize/');
             const data = await res.data;
+            console.log("rental detail size")
             console.log(data)
             const wh_rental_details_data_count = data.response[0].count;
             console.log(wh_rental_details_data_count)
@@ -420,7 +423,7 @@ const NewPostOwner = () => {
         if (!allFieldsFilled) {
             setUserExistsDB(false);
             notifyInfo("Please complete your profile before creating a post");
-        }else{
+        } else {
             setUserExistsDB(true);
 
         }
@@ -437,10 +440,10 @@ const NewPostOwner = () => {
                 const id = currentUser.userID;
                 await getOwnerDetails(id);
 
-                //To set the pagination Id we need to fetch the size of table
-                await getRentalDetailRecordsSize();
-                await getBasicDetailRecordsSize();
-                await getSpecificationDetailRecordsSize();
+                // //To set the pagination Id we need to fetch the size of table
+                // await getRentalDetailRecordsSize();
+                // await getBasicDetailRecordsSize();
+                // await getSpecificationDetailRecordsSize();
 
                 // setloading(false); // If you're managing loading state, uncomment this line
             } catch (error) {
@@ -451,7 +454,7 @@ const NewPostOwner = () => {
 
         fetchData();
 
-        
+
     }, []);
     // useEffect(() => {
     //     // setloading(true)
@@ -608,17 +611,21 @@ const NewPostOwner = () => {
                 try {
                     const formData = new FormData();
                     formData.append('image', selectedImage);
-
                     const response = await fetch(Constants.local_api_gateway_host + '/compressImages', {
                         method: 'POST',
                         body: formData,
                     });
+                    // await fetch(Constants.local_api_gateway_host + '/test', {
+                    //     method: 'POST',
+                    //     body: formData,
+                    // })
 
                     if (response.ok) {
                         const blob = await response.blob();
 
                         const compressedFile = new File([blob], selectedImage.name);
-
+                        console.log("compressed file");
+                        console.log(compressedFile)
                         // const client = makeStorageClient();
                         const cid = await imageUploadBackend(compressedFile);
                         console.log(cid)
@@ -755,23 +762,23 @@ const NewPostOwner = () => {
         const emptyWarehouseSpecificationFields = getEmptyFields(warehouseSpecificationFields, optionalWarehouseSpecificationFields);
 
 
-        if (emptyWarehouseFields.length > 0) {
-            notifyInfo(`Empty fields in warehouseFields: ${emptyWarehouseFields.join(', ')}`);
-            setLoading(false)
-            return;
-        }
+        // if (emptyWarehouseFields.length > 0) {
+        //     notifyInfo(`Empty fields in warehouseFields: ${emptyWarehouseFields.join(', ')}`);
+        //     setLoading(false)
+        //     return;
+        // }
 
-        if (emptyWarehouseRentalFields.length > 0) {
-            notifyInfo(`Empty fields in warehouseRentalFields: ${emptyWarehouseRentalFields.join(', ')}`);
-            setLoading(false)
-            return;
-        }
+        // if (emptyWarehouseRentalFields.length > 0) {
+        //     notifyInfo(`Empty fields in warehouseRentalFields: ${emptyWarehouseRentalFields.join(', ')}`);
+        //     setLoading(false)
+        //     return;
+        // }
 
-        if (emptyWarehouseSpecificationFields.length > 0) {
-            notifyInfo(`Empty fields in warehouseSpecificationFields: ${emptyWarehouseSpecificationFields.join(', ')}`);
-            setLoading(false)
-            return;
-        }
+        // if (emptyWarehouseSpecificationFields.length > 0) {
+        //     notifyInfo(`Empty fields in warehouseSpecificationFields: ${emptyWarehouseSpecificationFields.join(', ')}`);
+        //     setLoading(false)
+        //     return;
+        // }
 
         notifyInfo("Your Details will be updated soon")
 
@@ -779,6 +786,10 @@ const NewPostOwner = () => {
         try {
             //compressAndUploadImages();
             const thumbnailCID = await compressAndUploadImages();
+            await fetch(Constants.local_api_gateway_host + '/test', {
+                method: 'POST',
+                body: formData,
+            })
             console.log(thumbnailCID)
 
             if (thumbnailCID && thumbnailCID[0] !== undefined) {
@@ -871,9 +882,10 @@ const NewPostOwner = () => {
                     // notifyError("Error updating warehouse data")
                     console.error('Error updating warehouse data:', error);
                 });
-            router.push("/ViewListing");
+            // router.push("/ViewListing");
 
         } catch (error) {
+            console.log("try error");
             console.log(error);
         }
         setLoading(false)
@@ -906,7 +918,7 @@ const NewPostOwner = () => {
             </>
         )
     }
-    if(userExistsDB) {
+    if (userExistsDB) {
         return (
             <>
 
@@ -1197,7 +1209,7 @@ const NewPostOwner = () => {
                                                     options={{
                                                         altInput: true,
                                                         minDate: 'today',
-                                                        
+
                                                     }}
                                                 />
                                             </InputGroup>
@@ -1220,11 +1232,10 @@ const NewPostOwner = () => {
 
                                                     />
                                                 </Col>
-                                                <Col >
+                                                {/* <Col >
                                                     {minDuration.Unit === "" ? <Select
                                                         closeMenuOnSelect={true}
                                                         components={animatedComponents}
-                                                        // defaultValue={{ value: warehouseRentalFields.wh_max_lease, name: warehouseRentalFields.wh_max_lease, label: warehouseRentalFields.wh_max_lease }}
                                                         placeholder="Unit"
                                                         options={durationUnit}
                                                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1241,9 +1252,7 @@ const NewPostOwner = () => {
                                                             console.log(minDuration)
                                                         }}
                                                     />}
-
-
-                                                </Col>
+                                                </Col> */}
                                             </Row>
                                             {/* <Select
                                             closeMenuOnSelect={true}
@@ -1626,6 +1635,18 @@ const NewPostOwner = () => {
                                                 <Col>
                                                     <Form.Control
                                                         type="text"
+                                                        placeholder="Dimentions (in meters)"
+                                                        name='Length'
+                                                        // onChange={handleLoadingDockDimensions}
+                                                        onChange={(e)=>{
+                                                            setLoadingDockDimensions(e.target.value);
+                                                        }}
+                                                        value={loadingDockDimensions}
+                                                    />
+                                                </Col>
+                                                {/* <Col>
+                                                    <Form.Control
+                                                        type="text"
                                                         placeholder="Length"
                                                         name='Length'
                                                         onChange={handleLoadingDockDimensions}
@@ -1640,9 +1661,9 @@ const NewPostOwner = () => {
                                                         onChange={handleLoadingDockDimensions}
                                                         value={loadingDockDimensions?.Bredth}
                                                     />
-                                                </Col>
+                                                </Col> */}
                                             </Row>
-                                            <Row >
+                                            {/* <Row >
                                                 <Col>
                                                     <Form.Control
                                                         type="text"
@@ -1675,10 +1696,10 @@ const NewPostOwner = () => {
                                                     }
 
 
-                                                </Col>
+                                                </Col> */}
 
-                                            </Row>
-                                            {/* <Form.Control
+                                        {/* </Row> */}
+                                        {/* <Form.Control
                                             type="text"
                                             placeholder="Warehouse Loading Dock Size"
                                             name='loadingDockDimentions'
@@ -1686,160 +1707,160 @@ const NewPostOwner = () => {
                                             value={loadingDockDimensions?.Length}
 
                                         /> */}
-                                        </Form.Group>
-                                        <Form.Group className="mb-3">
-                                            <p className='mb-3 select2-container'>
-                                                <Form.Label>Age <Overlays message={"Age of the warehouse"} /></Form.Label>
-                                            </p>
-                                            {warehouseSpecificationFields.wh_age === "" ?
-                                                <Select
-                                                    closeMenuOnSelect={true}
-                                                    components={animatedComponents}
-                                                    placeholder="Select..."
-                                                    // defaultValue={{ value: warehouseSpecificationFields.wh_age, name: warehouseSpecificationFields.wh_age, label: warehouseSpecificationFields.wh_age }}
-                                                    options={WarehouseAge}
-                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                        setWarehouseSpecificationFields(prev => ({
-                                                            ...prev,
-                                                            ['wh_age']: event.value
-                                                        }));
-                                                        console.log(warehouseSpecificationFields)
+                                    </Form.Group>
+                                    <Form.Group className="mb-3">
+                                        <p className='mb-3 select2-container'>
+                                            <Form.Label>Age <Overlays message={"Age of the warehouse"} /></Form.Label>
+                                        </p>
+                                        {warehouseSpecificationFields.wh_age === "" ?
+                                            <Select
+                                                closeMenuOnSelect={true}
+                                                components={animatedComponents}
+                                                placeholder="Select..."
+                                                // defaultValue={{ value: warehouseSpecificationFields.wh_age, name: warehouseSpecificationFields.wh_age, label: warehouseSpecificationFields.wh_age }}
+                                                options={WarehouseAge}
+                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                    setWarehouseSpecificationFields(prev => ({
+                                                        ...prev,
+                                                        ['wh_age']: event.value
+                                                    }));
+                                                    console.log(warehouseSpecificationFields)
 
-                                                    }}
-                                                />
-                                                :
-                                                <Select
-                                                    closeMenuOnSelect={true}
-                                                    components={animatedComponents}
-                                                    defaultValue={{ value: warehouseSpecificationFields.wh_age, name: warehouseSpecificationFields.wh_age, label: warehouseSpecificationFields.wh_age }}
-                                                    options={WarehouseAge}
-                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                        setWarehouseSpecificationFields(prev => ({
-                                                            ...prev,
-                                                            ['wh_age']: event.value
-                                                        }));
-                                                        console.log(warehouseSpecificationFields)
+                                                }}
+                                            />
+                                            :
+                                            <Select
+                                                closeMenuOnSelect={true}
+                                                components={animatedComponents}
+                                                defaultValue={{ value: warehouseSpecificationFields.wh_age, name: warehouseSpecificationFields.wh_age, label: warehouseSpecificationFields.wh_age }}
+                                                options={WarehouseAge}
+                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                    setWarehouseSpecificationFields(prev => ({
+                                                        ...prev,
+                                                        ['wh_age']: event.value
+                                                    }));
+                                                    console.log(warehouseSpecificationFields)
 
-                                                    }}
-                                                />
-                                            }
+                                                }}
+                                            />
+                                        }
 
-                                        </Form.Group>
-                                        <Form.Group className="mb-3">
-                                            <p className='mb-3 select2-container'>
-                                                <Form.Label>HVAC <Overlays message={"Warehouse Heating, ventilation, and air conditioning "} />
-                                                </Form.Label>
-                                            </p>
+                                    </Form.Group>
+                                    <Form.Group className="mb-3">
+                                        <p className='mb-3 select2-container'>
+                                            <Form.Label>HVAC <Overlays message={"Warehouse Heating, ventilation, and air conditioning "} />
+                                            </Form.Label>
+                                        </p>
 
-                                            {warehouseSpecificationFields.wh_hvac === "" ?
-                                                <Select
-                                                    closeMenuOnSelect={true}
-                                                    required={true}
-                                                    components={animatedComponents}
-                                                    placeholder="Select"
-                                                    options={[{ name: "wh_hvac", label: "Yes", value: "Yes" }, { name: "wh_hvac", label: "No", value: "No" }]}
-                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                        setWarehouseSpecificationFields(prev => ({
-                                                            ...prev,
-                                                            ['wh_hvac']: event.value
-                                                        }));
-                                                    }}
-                                                />
-                                                :
-                                                <Select
-                                                    closeMenuOnSelect={true}
-                                                    required={true}
-                                                    components={animatedComponents}
-                                                    placeholder="Warehouse HVAC"
-                                                    defaultValue={{ name: "wh_hvac", value: warehouseSpecificationFields.wh_hvac, label: warehouseSpecificationFields.wh_hvac }}
-                                                    options={[{ name: "wh_hvac", label: "Yes", value: "Yes" }, { name: "wh_hvac", label: "No", value: "No" }]}
-                                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                                        setWarehouseSpecificationFields(prev => ({
-                                                            ...prev,
-                                                            ['wh_hvac']: event.value
-                                                        }));
-                                                    }}
-                                                />
-                                            }
+                                        {warehouseSpecificationFields.wh_hvac === "" ?
+                                            <Select
+                                                closeMenuOnSelect={true}
+                                                required={true}
+                                                components={animatedComponents}
+                                                placeholder="Select"
+                                                options={[{ name: "wh_hvac", label: "Yes", value: "Yes" }, { name: "wh_hvac", label: "No", value: "No" }]}
+                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                    setWarehouseSpecificationFields(prev => ({
+                                                        ...prev,
+                                                        ['wh_hvac']: event.value
+                                                    }));
+                                                }}
+                                            />
+                                            :
+                                            <Select
+                                                closeMenuOnSelect={true}
+                                                required={true}
+                                                components={animatedComponents}
+                                                placeholder="Warehouse HVAC"
+                                                defaultValue={{ name: "wh_hvac", value: warehouseSpecificationFields.wh_hvac, label: warehouseSpecificationFields.wh_hvac }}
+                                                options={[{ name: "wh_hvac", label: "Yes", value: "Yes" }, { name: "wh_hvac", label: "No", value: "No" }]}
+                                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                                    setWarehouseSpecificationFields(prev => ({
+                                                        ...prev,
+                                                        ['wh_hvac']: event.value
+                                                    }));
+                                                }}
+                                            />
+                                        }
 
-                                        </Form.Group>
-                                    </Col>
+                                    </Form.Group>
+                                </Col>
+
+
+                            </Row>
+                        <div className="text-center mt-3">
+                            <Button
+                                type="button"
+                                className='m-2 btn btn-info text-white'
+                                onClick={() => setStep(step - 1)}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                type="button"
+                                className='m-2 btn btn-info text-white'
+                                onClick={() => setStep(step + 1)}
+                            >
+                                Next
+                            </Button>
+                        </div>
+
+
+                    </>
+                        }
+
+                    {/* Images */}
+                    {step === 3 &&
+                        <>
+                            <div className='d-flex justify-content-center'>
+                                <Row className='mt-5'>
+                                    <h6 className='m-2 pb-4 d-flex justify-content-center'>By default first image is taken as thumbnail</h6>
+                                    <ImageUpload
+                                        ImagesData={imagesData}
+                                        setFileListState={handleSetFileListData}
+                                        setNewImageState={handleSetNewImagesData}
+                                        setDeletedImageState={handleSetDeletedCidData}
+
+                                    />
 
 
                                 </Row>
-                                <div className="text-center mt-3">
-                                    <Button
-                                        type="button"
-                                        className='m-2 btn btn-info text-white'
-                                        onClick={() => setStep(step - 1)}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        className='m-2 btn btn-info text-white'
-                                        onClick={() => setStep(step + 1)}
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
-
-
-                            </>
-                        }
-
-                        {/* Images */}
-                        {step === 3 &&
-                            <>
-                                <div className='d-flex justify-content-center'>
-                                    <Row className='mt-5'>
-                                        <h6 className='m-2 pb-4 d-flex justify-content-center'>By default first image is taken as thumbnail</h6>
-                                        <ImageUpload
-                                            ImagesData={imagesData}
-                                            setFileListState={handleSetFileListData}
-                                            setNewImageState={handleSetNewImagesData}
-                                            setDeletedImageState={handleSetDeletedCidData}
-
-                                        />
-
-
-                                    </Row>
-                                </div>
-                                {loading ?
-                                    <>
-                                        <div className="text-center mt-3">
-                                            <div className="column d-flex align-items-xl-center justify-content-center">
-                                                <h3 className="m-3 p-3"> <ReactLoading type="spinningBubbles" color="#1a152e" /></h3>
-                                            </div>
+                            </div>
+                            {loading ?
+                                <>
+                                    <div className="text-center mt-3">
+                                        <div className="column d-flex align-items-xl-center justify-content-center">
+                                            <h3 className="m-3 p-3"> <ReactLoading type="spinningBubbles" color="#1a152e" /></h3>
                                         </div>
-                                    </>
-                                    :
-                                    <>
-                                        <div className="text-center ">
-                                            <Button
-                                                type="button"
-                                                className='m-2 btn btn-info text-white'
-                                                onClick={() => setStep(step - 1)}
-                                            >
-                                                Previous
-                                            </Button>
+                                    </div>
+                                </>
+                                :
+                                <>
+                                    <div className="text-center ">
+                                        <Button
+                                            type="button"
+                                            className='m-2 btn btn-info text-white'
+                                            onClick={() => setStep(step - 1)}
+                                        >
+                                            Previous
+                                        </Button>
 
-                                            <Button
-                                                type="submit"
-                                                className='m-2 btn btn-success text-white '
-                                                disabled={!userExistsDB}
-                                            >
-                                                Submit
-                                            </Button>
-                                        </div>
-                                    </>
-                                }
+                                        <Button
+                                            type="submit"
+                                            className='m-2 btn btn-success text-white '
+                                            disabled={!userExistsDB}
+                                        >
+                                            Submit
+                                        </Button>
+                                    </div>
+                                </>
+                            }
 
 
-                            </>
-                        }
-                    </Form>
-                </div>
+                        </>
+                    }
+                </Form>
+            </div >
 
             </>
         )

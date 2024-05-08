@@ -18,10 +18,9 @@ export async function GET(req, res) {
       headers: headers,
     }
   );
-  const newData = response.data;
-
+  const newData = response.data.response;
   console.log(newData);
-  return NextResponse.json({newData},{status:200});
+  return NextResponse.json({response:newData},{status:200});
 }
 
 export async function POST(req, res) {

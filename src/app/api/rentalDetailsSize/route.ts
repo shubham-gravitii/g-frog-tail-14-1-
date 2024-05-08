@@ -5,7 +5,8 @@ import { fetchApiSettings } from "../../../utils/ssm";
 import { NextResponse } from "next/server";
 export async function GET(req, res) {
   try {
-    const data={}
+    const dataReq = new URLSearchParams(req.nextUrl.searchParams);
+    const data = Object.fromEntries(dataReq.entries());
     const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
       await fetchApiSettings();
 
@@ -31,11 +32,11 @@ export async function GET(req, res) {
       }
     );
     const newData = response.data;
-    const res=newData.response;
+    const res = newData.response;
     console.log(newData);
-    return NextResponse.json({ response:res }, { status: 200 });
+    return NextResponse.json({ response: res }, { status: 200 });
   } catch (error) {
     console.log(error.message);
-    return NextResponse.json({error},{status:500});
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

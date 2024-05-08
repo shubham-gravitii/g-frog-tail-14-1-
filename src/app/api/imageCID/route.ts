@@ -26,7 +26,9 @@ export async function GET( req, res) {
   const data = Object.fromEntries(dataReq.entries());
   const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
     await fetchApiSettings();
+    console.log("Image Cid api get request")
     console.log(data)
+    console.log(apiKeyMedia)
   try {
     const headers = {
       Accept: "*/*",
@@ -35,7 +37,7 @@ export async function GET( req, res) {
       "Content-Type": "application/json",
     };
     console.log(`${apiGatewayHostMedia}/generate_presigned_url?cid=${data.cid}`)
-    const response = await axios.get(
+    const response = await axios.post(
       `${apiGatewayHostMedia}/generate_presigned_url?cid=${data.cid}`,
       null,
       {
@@ -53,6 +55,8 @@ export async function GET( req, res) {
 
 
 export async function POST(req, res) {
+  console.log("Image Cid api post request")
+
   jsonParser(req, res, async() => {
     const dataReq = new URLSearchParams(req.nextUrl.searchParams);
     const data = Object.fromEntries(dataReq.entries());
