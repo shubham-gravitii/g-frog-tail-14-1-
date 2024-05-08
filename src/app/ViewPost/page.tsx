@@ -38,7 +38,7 @@ const RateExplorer = () => {
   return (
     <>
       <React.Fragment>
-        <div style={{ minHeight: "100vh" }} className="black-bg">
+        <div style={{ minHeight: "100vh", backgroundColor: "#058283" }}>
           <meta httpEquiv="cache-control" content="no-cache" />
           <meta httpEquiv="expires" content="0" />
           <meta httpEquiv="pragma" content="no-cache" />

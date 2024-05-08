@@ -14,7 +14,7 @@ import {
   Row,
 } from "reactstrap";
 import { Link, Outlet } from "react-router-dom";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/UserContext";
 import axios from "axios";
 
@@ -82,78 +82,73 @@ const SearchBoards = () => {
 
   return (
     <>
-      <div className="mt-3">
+      <div className="mt-3"> 
         <Form onSubmit={handleSubmit}>
           <InputGroup>
-            <div className="row ">
-              <div className="col-lg-6">
-                <div className="p-3 me-4">
-                  <p className="mb-2 select2-container">
-                    <Label style={{ fontWeight: 'bold' }}>Location:</Label>
-                  </p>
-                  <Input
-                    type="text"
-                    placeholder="Enter Location"
-                    name="Location"
-                    value={formData.Location}
-                    required
-                    onChange={(e) => {
-                      handleAdressSearch(e);
-                      handleChange(e);
-                    }}
-                  ></Input>
-                  {/* <Button color="dark" className="btn btn-dark w-20" onClick={handleSearch}>Show</Button> */}
-                  {showlist && (
-                    <div className="row">
-                      <ul className="col-lg-11 col-md-10 col-sm-9 ">
-                        {names.map((result) => (
-                          <li
-                            className=" d-block p-2 mb-3 w-90 "
-                            onClick={() => {
-                              const name =
-                                result.placeName + " " + result.placeAddress;
-                              setshowlist(false);
-                              setaddressSearch(name);
-                              setFormData((prev) => ({
-                                ...prev,
-                                Location: name,
-                              }));
-                            }}
-                            key={result.eLoc}
-                          >
-                            {result.placeName},{result.placeAddress}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="col-lg-3">
-                <div className="p-3 me-4">
-                  <p className="mb-2 select2-container">
-                    <Label style={{ fontWeight: 'bold' }}>Distance(km):</Label>
+          <div className="w-100">
+              <div className="d-sm-flex justify-content-sm-center align-items-sm-flex-start" style={{gap:"15px"}}>
+                <div className="mb-3" style={{flex:"0 0 60%"}}>
+                  <div>
+                    <Label style={{fontWeight:"bold", fontSize:"1.2rem"}}>Location</Label>
                     <Input
-                    type="number"
-                    name="Warehouse_Distance"
-                    defaultValue={formData.Warehouse_Distance}
-                    onChange={handleChange}
-                  ></Input>
-                  </p>
-                  
+                        type="text"
+                        placeholder="Enter Location"
+                        name="Location"
+                        value={formData.Location}
+                        required
+                        onChange={(e) => {
+                          handleAdressSearch(e);
+                          handleChange(e);
+                        }}
+                      ></Input>
+                  </div>
+                  {showlist && (
+                      <div className="row">
+                        <ul 
+                        //className="col-lg-11 col-md-10 col-sm-9 "
+                        className='list-group-item p-3 mb-2 d-block' 
+                        style={{cursor:"pointer"}} 
+                        >
+                          {names.map((result) => (
+                            <li
+                              className=" d-block p-2 mb-3 w-90"
+                              style={{backgroundColor:"white", borderRadius:"10px"}}
+                              onClick={() => {
+                                const name =
+                                  result.placeName + " " + result.placeAddress;
+                                setshowlist(false);
+                                setaddressSearch(name);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  Location: name,
+                                }));
+                              }}
+                              key={result.eLoc}
+                            >
+                              {result.placeName},{result.placeAddress}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+
+                <div className="mb-3" style={{flex:"0 0 35%"}}>
+                  <Label style={{fontWeight:"bold", fontSize:"1.2rem"}}>Distance(in kms)</Label>
+                  <Input
+                      type="number"
+                      name="Warehouse_Distance"
+                      defaultValue={formData.Warehouse_Distance}
+                      onChange={handleChange}
+                    ></Input>
                 </div>
               </div>
-              <div className="col-lg-3">
-                <div className="p-3 me-4 ">
-                  <p className="mb-2 select2-container">
-                    <br></br>
-                  </p>
-                  <Button type="Submit" className="w-100 " style={{ fontWeight: 'semi-bold' }}>
-                    Search
-                  </Button>
-                </div>
+              <div className="mt-4">
+                <Button type="submit" className="m-btn m-btn-4 w-100" style={{ fontWeight: 'semi-bold', fontSize:"1.2rem" }}>
+                        Search
+                </Button>
               </div>
-            </div>
+          </div>
           </InputGroup>
         </Form>
       </div>

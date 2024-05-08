@@ -2,8 +2,6 @@
 // @ts-nocheck
 'use client'
 import React, { useState, useEffect, useContext } from 'react'
-
-
 import FormData from 'form-data'
 import Form from 'react-bootstrap/Form';
 import Overlays from '../../Overlays'
@@ -176,7 +174,7 @@ const NewPostOwner = () => {
     const [specRoofHeight, setSpecRoofHeight] = useState('');
     const [specRoofType, setSpecRoofType] = useState('');
     // const [specAge, setSpecAge] = useState('');
-    const [step, setStep] = useState(3)
+    const [step, setStep] = useState(0)
     const [imagesData, setImagesData] = useState([]);
     const [newCID, setDeletedCid] = useState<StorageCidItem[]>([]);
     const [newImages, setNewImages] = useState([]);
@@ -440,10 +438,10 @@ const NewPostOwner = () => {
                 const id = currentUser.userID;
                 await getOwnerDetails(id);
 
-                // //To set the pagination Id we need to fetch the size of table
-                // await getRentalDetailRecordsSize();
-                // await getBasicDetailRecordsSize();
-                // await getSpecificationDetailRecordsSize();
+                //To set the pagination Id we need to fetch the size of table
+                await getRentalDetailRecordsSize();
+                await getBasicDetailRecordsSize();
+                await getSpecificationDetailRecordsSize();
 
                 // setloading(false); // If you're managing loading state, uncomment this line
             } catch (error) {
@@ -615,17 +613,16 @@ const NewPostOwner = () => {
                         method: 'POST',
                         body: formData,
                     });
-                    // await fetch(Constants.local_api_gateway_host + '/test', {
-                    //     method: 'POST',
-                    //     body: formData,
-                    // })
+                    await fetch(Constants.local_api_gateway_host + '/test', {
+                        method: 'POST',
+                        body: formData,
+                    })
 
                     if (response.ok) {
                         const blob = await response.blob();
 
                         const compressedFile = new File([blob], selectedImage.name);
-                        console.log("compressed file");
-                        console.log(compressedFile)
+
                         // const client = makeStorageClient();
                         const cid = await imageUploadBackend(compressedFile);
                         console.log(cid)
@@ -786,10 +783,6 @@ const NewPostOwner = () => {
         try {
             //compressAndUploadImages();
             const thumbnailCID = await compressAndUploadImages();
-            await fetch(Constants.local_api_gateway_host + '/test', {
-                method: 'POST',
-                body: formData,
-            })
             console.log(thumbnailCID)
 
             if (thumbnailCID && thumbnailCID[0] !== undefined) {

@@ -54,25 +54,43 @@ const Client = ({locationText,setlocationText}) => {
     console.log("COnsoling name  ------------------->")
     console.log(name)
     setlocationText(name)
-    setsearchText(name);
-    setconfirmNo(false);
-    setshowsuggest(false);
-    fetch('/api/geocode', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log("logging----->")
-      console.log(data)
-      setLat(data.lat);
-      setLong(data.lng);
-      console.log("logging----->")
-      setconfirm(true);
-      // Assuming setWhGpsCoordinates and setconfirm are handled elsewhere or adjusted accordingly
-    })
-    .catch(error => console.error('Error:', error));
+    if (name === ""){
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            setLat(latitude);
+            setLong(longitude);
+            setconfirm(true);
+          },
+          error => console.error('Error getting location:', error.message)
+        );
+      } else {
+        console.error('Geolocation is not supported by your browser.');
+      }
+    }
+    else{
+      setsearchText(name);
+      setconfirmNo(false);
+      setshowsuggest(false);
+      fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("logging----->")
+        console.log(data)
+        setLat(data.lat);
+        setLong(data.lng);
+        console.log("logging----->")
+        setconfirm(true);
+        // Assuming setWhGpsCoordinates and setconfirm are handled elsewhere or adjusted accordingly
+      })
+      .catch(error => console.error('Error:', error));
+    }
+    
   };
 
   
@@ -95,6 +113,7 @@ const Client = ({locationText,setlocationText}) => {
       }
     } else {
       setNames([]);
+      setshowsuggest(false);
     }
   }
 
@@ -107,26 +126,28 @@ const Client = ({locationText,setlocationText}) => {
   return (<>
     <div>
       <div className="row">
-        <div className="col-lg-11">
+        <div className="col-10">
            <Input type="text" value={searchText} onChange={handleAdressChange} name="search" id="search"  /> 
         </div>
-        <div className="col-lg-1"> <Button className="btn btn-primary btn-l" onClick={() => handleSearchText(searchText)}><AiOutlineSearch /></Button></div>
+        <div className="col-1"> <Button className="btn btn-primary btn-l" onClick={() => handleSearchText(searchText)}><AiOutlineSearch /></Button></div>
       </div>
      
         {showsuggest &&
-          <ul > 
-              {names.map((result) => (
-              <li className='p-1 mb-2 d-block' 
-                onClick={() => { const name = result.placeName + " " + result.placeAddress;  handleSearchText(name)}}
+          <ul className="list-group mt-2" > 
+               {names.map((result) => (
+              <li className='list-group-item p-3 mb-2 d-block' style={{backgroundColor: "#f0f0f0", cursor:"pointer"}} onClick={() => {
+                const name = result.placeName + " " + result.placeAddress;
+                handleSearchText(name)
+              }}
                 key={result.eLoc}>
-               {result.placeName},{result.placeAddress}
+                {result.placeName},{result.placeAddress}
               </li>
             ))}
           </ul>
         }
-        {confirm && searchText &&  ( 
+        {confirm &&  ( 
           <> 
-              <div  style={{ width: "100%" }}> 
+              <div  className="mt-2" style={{ width: "100%" }}> 
                 <Mapplsmap Lattitude={Lat} Longitude={Long} Address={searchText} onChildData={handleChildData} />
               </div>
           

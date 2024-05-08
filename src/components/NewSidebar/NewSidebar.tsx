@@ -15,6 +15,9 @@ import { FiLogOut } from "react-icons/fi";
 
 import {
   FaUser,
+  FaSearch,
+  FaUserEdit,
+
 } from "react-icons/fa";
 import { Nav } from "reactstrap";
 import { useRouter } from 'next/navigation';
@@ -40,7 +43,7 @@ const NewSidebar = () => {
     try {
       logOut();
       await signOut();
-      router.push("/login"); // Redirect to the login page after logout
+      router.push("/"); // Redirect to the login page after logout
     } catch (error) {
       console.log("Error logging out:", error);
     }
@@ -51,8 +54,9 @@ const NewSidebar = () => {
       <div className="custom-body ">
         <div
           className={
-            sticky ? "sticky header__area black-bg" : "header__area black-bg"
+            sticky ? "sticky header__area" : "header__area"
           }
+          style={{backgroundColor:"#058283"}}
           id="header-sticky"
         >
           <div className="container p-2">
@@ -98,38 +102,75 @@ const NewSidebar = () => {
                       <ul className="nounderline">
                         <div className="single_link option iconAdd">
                           <li>
-                            <Link href="/create-profile"
-                              onClick={handleLinkClick}
-                              style={{ color: "white" }}
-                            >
+                            <Link href="/"
+                            onClick={handleLinkClick}
+                            style={{ color: "white", textDecoration:"none" }}>
                               {/* <a> */}
-                                <FaUser /> Edit Profile
+                                <FaSearch/> Search
                               {/* </a> */}
                             </Link>
                           </li>
                         </div>
                         <div className="single_link option iconAdd">
                           <li>
-                            <Link href="/posty"
-                              onClick={handleLinkClick}
-                              className="option"
-                              style={{ color: "white" }}
-                            >
-                              {/* <a> */}
+                            <Link href="/posty" 
+                            onClick={handleLinkClick}
+                            className="option"
+                            style={{ color: "white", textDecoration:"none" }}>
+                              {/* <a>                          */}
                                 <AiFillSwitcher /> Create New Post
                               {/* </a> */}
                             </Link>
                           </li>
                         </div>
 
+                        {currentUser && (currentUser.userRole === "Customer" || currentUser.nickname === "Customer") && (
+                          <div className="single_link option iconAdd">
+                            <li>
+                              <Link href="/ViewPost" onClick={handleLinkClick}
+                              onClick={handleLinkClick}
+                              style={{ color: "white", textDecoration:"none" }}>
+                                {/* <a> */}
+                                 <AiOutlineCopy /> View Post
+                                {/* </a> */}
+                              </Link>
+                            </li>
+                          </div>
+
+                        )}
+
                         <div className="single_link option iconAdd">
                           <li>
                             <Link href="/ViewOwnPost"
-                              onClick={handleLinkClick}
-                              style={{ color: "white" }}
-                            >
+                            onClick={handleLinkClick}
+                            style={{ color: "white", textDecoration:"none" }}>
                               {/* <a> */}
                                 <AiOutlineContainer /> View Your Posts
+                              {/* </a> */}
+                            </Link>
+                          </li>
+                        </div>
+
+                        {/* <div className="single_link option iconAdd">
+                          <li>
+                            <Link href="/about-us">
+                              <a
+                                onClick={handleLinkClick}
+                                style={{ color: "white" }}
+                              >
+                                <FaQuestionCircle /> FAQ/Help
+                              </a>
+                            </Link>
+                          </li>
+                        </div> */}
+
+                        <div className="single_link option iconAdd">
+                          <li>
+                            <Link href="/create-profile"
+                            onClick={handleLinkClick}
+                            style={{ color: "white", textDecoration:"none" }}>
+                              {/* <a> */}
+                                <FaUserEdit /> Edit Profile
                               {/* </a> */}
                             </Link>
                           </li>
@@ -140,9 +181,8 @@ const NewSidebar = () => {
                           <div className="single_link option iconAdd">
                             <li>
                               <Link href="/ViewListing"
-                                onClick={handleLinkClick}
-                                style={{ color: "white", textDecoration: "none" }}
-                              >
+                              onClick={handleLinkClick}
+                              style={{ color: "white", textDecoration: "none" }}>
                                 {/* <a> */}
                                   {" "}
                                   <AiOutlineCopy /> View Listing
@@ -151,18 +191,36 @@ const NewSidebar = () => {
                             </li>
                           </div>
                         )}
+                        
 
-                        {currentUser && (currentUser.userRole === "Customer" || currentUser.nickname === "Customer") && (
-                          <div className="single_link option iconAdd">
-                            <li>
-                              <Link href="/ViewPost" onClick={handleLinkClick}
-                                style={{ color: "white", textDecoration: "none" }} >
-                                <span> <AiOutlineCopy /> View Post</span>
-                              </Link>
-                            </li>
-                          </div>
+                        
 
-                        )}
+                        {/* <div className="single_link option iconAdd">
+                          <li>
+                            <Link href="/blog">
+                              <a
+                                onClick={handleLinkClick}
+                                style={{ color: "white" }}
+                              >
+                                <FaBlog /> Blog
+                              </a>
+                            </Link>
+                          </li>
+                        </div> */}
+
+
+                        {/* <div className="single_link option iconAdd">
+                          <li>
+                            <Link href="/contact-us">
+                              <a
+                                onClick={handleLinkClick}
+                                style={{ color: "white" }}
+                              >
+                                <FaEnvelope /> Contact us
+                              </a>
+                            </Link>
+                          </li>
+                        </div> */}
 
                         <div className="single_link option iconAdd">
                           <li>

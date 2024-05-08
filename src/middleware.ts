@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest, response: NextResponse) {
 
 export const config = {
   matcher: [
-    // "/api/:path*",
+    "/api/:path*",
     "/private",
     /*
      * Match all request paths except for the ones starting with:

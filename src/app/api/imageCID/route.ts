@@ -13,11 +13,21 @@ const bodyParser = require("body-parser");
 
 const jsonParser = bodyParser.json();
 
+
 export const config = {
   api: {
     bodyParser: false,
   },
 };
+
+// export const routeConfig = {
+//   api: {
+//     bodyParser: false,
+//   },
+// };
+
+// export default routeConfig;
+
 
 
 

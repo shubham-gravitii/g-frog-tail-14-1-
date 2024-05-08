@@ -9,6 +9,8 @@ import * as Constants from "../../utils/constants";
 
 import ImgFlip from './ImgFlip'
 import Spinner from 'react-bootstrap/Spinner'
+import { NonEmptyReferenceField } from "react-admin";
+
 const Background = () => {
   const [isLoading, setisLoading] = useState(true)
   const [data, setData] = useState([]);
@@ -32,8 +34,10 @@ const Background = () => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background:
-      "radial-gradient(circle closest-corner at center 125px,#222,black 40%) no-repeat", // Change colors as needed
+    // backgroundImage: "url('https://img.freepik.com/free-photo/many-transport-trucks-parked-service-station-sunset-ai-generative_123827-23416.jpg?t=st=1713176448~exp=1713180048~hmac=ed5e8b88e8227d7b75c693b7b9c1b7662190f548383a7e1fd47b49eecce88c53&w=996')",
+    // backgroundRepeat: "no-repeat",
+    // backgroundSize : "cover",
+    // backgroundPosition: "center"
   };
 
   const responsive = {
@@ -79,30 +83,34 @@ const Background = () => {
 
   return (
     <>
-      <div className=" py-5" style={gradientBackground}>
+      <div style={gradientBackground}>
         <Container>
           <Row>
-            <div className="container row px-2 pl-2 ">
-              <div className="row justify-content-center">
+            <div className="justify-content-center align-items-center" style={{width:"90%", margin:"auto"}}>
+              <div className="row justify-content-center my-4" 
+              style={{backgroundImage:"linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('https://wallpaperaccess.com/full/2308996.jpg')", 
+              backgroundSize:"cover", backgroundRepeat:"no-repeat", backgroundPosition:"center"}}
+              >
                 <div className="col-lg-6 ">
                   <div className="text-center my-5">
-                    <h1 className="display-5 fw-bolder text-white mb-2 ml-1">
+                    <h1 className="display-md-5 display-6 fw-bolder mb-3" style={{color:"#058283"}}>
                       Know about our product GRAVITII
                     </h1>
-                    <p className=" text-white-50 mb-4 ml-1">
+                    <p className="mb-2" style={{color:"#fff"}}>
                       Quickly design and customize responsive mobile-first sites
                       with Bootstrap, the world’s most popular front-end open
                       source toolkit!
                     </p>
+                    
                   </div>
                 </div>
               </div>
             </div>
           </Row>
-          <Row>
-            <div className="bg-black py-4">
-              <h1 className="text-4xl fw-bolder text-white font-bold text-center">
-                WAREHOUSES AVAILABLE
+          <Row className="mb-4">
+            <div className="pb-2">
+              <h1 className="text-4xl fw-bolder font-bold text-center" style={{color:"#058283"}}>
+                PREMIUM WAREHOUSES AVAILABLE
               </h1>
             </div>
             <Carousel
@@ -123,7 +131,7 @@ const Background = () => {
               itemClass="carousel-item-padding-40-px"
             >
               {imageLinks.map((link, index) => (
-                <div key={index} className="p-3 m-3">
+                <div key={index} className="p-3 m-3 mb-4">
                   <img src={link} alt={`Image ${index}`} style={{ height: "300px", width: "400px", objectFit: "cover", borderRadius: "30px" }} className="" />
                 </div>
               ))}
@@ -131,11 +139,11 @@ const Background = () => {
           </Row>
 
           <Row>
-            <div className="bg-black py-4">
-              <h1 className="text-4xl fw-bolder text-white font-bold text-center">
+            {/* <div className="py-4">
+              <h1 className="text-4xl fw-bolder font-bold text-center">
                 PREMIUM POSTS
               </h1>
-            </div>
+            </div> */}
             {isLoading ?
               <div className="text-center">
                 <Spinner animation="border" variant="light" />

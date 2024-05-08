@@ -1,9 +1,11 @@
+//@ts-nocheck
+"use client"
 import React from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import Image from 'next/image'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import styles from '../../styles/About.module.css'
+import styles from '../../styles/About.module.css';
 
 import whoWeAreImg from "../../assets/images/aboutus/whoWeAre2.jpg"
 
@@ -12,6 +14,10 @@ import profile from '../../assets/images/aboutus/profile.jpg'
 // import Inter_Tight from 'next/font/google'
 // import { w1, w2, w3, w4, w5, w6, w7, w8 } from '../../assets/images/aboutus/wareHouseGallery'
 import AddIcon from '@mui/icons-material/Add';
+
+import FAQSection from './FaqSection';
+
+
 const About = () => {
     return (
         <>
@@ -512,7 +518,17 @@ const About = () => {
           </div>
         </div>
       </section> */}
-            <section className="list1 cid-u2djpAZyU7" id="faq-1-u2djpAZyU7">
+
+      <section className="list1 cid-u2djpAZyU7">
+        <div className="col-12 col-md-12 col-lg-10 m-auto">
+          <h3 className="mbr-section-title mb-4 text-center display-2">
+            <strong>FAQs</strong>
+          </h3>
+          <FAQSection />
+        </div>
+      </section>
+      
+           {/* <section className="list1 cid-u2djpAZyU7" id="faq-1-u2djpAZyU7">
                 <div className="container">
                     <div className="row justify-content-center">
                         <div className="col-12 col-md-12 col-lg-10 m-auto">
@@ -615,7 +631,11 @@ const About = () => {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> */}
+
+
+
+
             {/* <section className="article13 cid-u2djpAZjFn" id="call-to-action-3-u2djpAZjFn">
         <div className="container">
           <div className="row justify-content-center">

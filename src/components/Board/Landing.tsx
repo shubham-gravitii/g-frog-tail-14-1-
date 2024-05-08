@@ -204,99 +204,102 @@ const Landing = () => {
 
 
                 <Container fluid={true}>
-                    
-                <Row className="justify-content-center align-self-center m-5">
-                            <Col lg="7" md="7" sm="10" xl="6" >
-                                <div style={{ borderRadius: '10px',border:'4px solid #A85DF4' }}>
-                                <Card >
-                                <CardBody style={{backgroundColor:'#CA76F4'}}>
-                                        <h4 className=" text-center card-title " style={{ fontWeight: 'semi-bold' }}>BOARD EXPLORER </h4>
-                                        <p className="card-title-desc"></p>
-                                        <FormGroup className="mb-4 ms-2">
-                                     
-                                            <SearchBoards/>
-                                            <div className="p-3">
-                                            <Row className="justify-content-center">
-                                                <p className="text-center">OR</p>  
-                                            </Row>
-                                            <Row className="justify-content-center">
-                                              <Button
-                                               type="button"
-                                               className="m-btn m-btn-4 w-60 m-2"
-                                               style={{ backgroundColor: "#4A2FBE"}}
-                                               onClick={handlemapbutton}
-                                               >
-                                              {buttoncontent}
-                                              </Button>
-                                            </Row>
-                                            </div>
-                                            {showmap &&
-                                            <div className=" p-3 mb-4 ">
-                                                
-                                                  {/* <Row>
-                                             <AddressSuggestionsSource
-                                              onSourceAddressChange={setSourceAddress}/>
-                                             {console.log("sourceAddress--->",sourceAddress)}
-                                                  </Row> */}
-                                                  
-                                                  <Client/>
-                                            </div>
-                                           }
-                                        </FormGroup>
-{/* 
-                                        <Button
-                                            color="dark"
-                                            className="btn btn-dark w-100"
-                                            onClick={() => onSearch(handlesearch)}
-                                        >
-                                            Search
-                                        </Button> */}
-                                    </CardBody>
-                                </Card>
-                                </div>
-                            </Col>
-                        </Row>
-                    
-
-
-                    {usrRole == "Broker" && (
-                        <>
-                            <Container fluid={true} className="black-bg">
-                                <br></br>
-                                <Row>
-                                    {data.map((f, i) => {
-                                        return <RecordCardCarrier key={f} ID={f.carrier_id} DeliveryDate={f.carrier_mot_delivery_date} MotID={f.carrier_mot_id} distance={f.carrier_mot_total_distance} type={f.carrier_mot_equipment_type} destination={f.carrier_mot_destination
-                                        } origin={f.carrier_mot_origin} Date={f.carrier_mot_pickup_date} Timestamp={f.carrier_mot_created_timestamp} />
-                                    })}
-                                </Row>
-                                <Row>
-                                    <Col xs="12">
-                                    </Col>
-                                </Row>
-                            </Container>
-                        </>
-                    )}
-
-                    {usrRole == "Carrier" && (
-                        <>
-                            <Container fluid={true} className="black-bg">
-                                <br></br>
-                                <Row>
-                                    {data.map((e, i) => {
-                                        return <RecordCardBroker key={e} IDName={e.broker_id} pickupdates={e.broker_load_pickup_date} origin={e.broker_load_origin} IDLoad={e.broker_load_id} Timestamps={e.broker_load_created_timestamp} delivery={e.broker_load_delivery_date} load={e.broker_load_equipment_type} weight={e.broker_load_weight}
-                                            destinations={e.broker_load_destination} commodity={e.broker_load_commodity} Distances={e.broker_load_distance} rates={e.broker_load_rate} addition={e.broker_load_additional_requirements} />
-
-                                    })}
-                                </Row>
-                                <Row>
-                                    <Col xs="12">
-                                    </Col>
-                                </Row>
-                            </Container>
-                        </>
-                    )}
-                    
-                </Container>
+                    <Row className="justify-content-center align-self-center m-sm-2 m-md-5">
+                                <Col lg="10" md="12" sm="12" xl="6" xs="12">
+                                    <div style={{ borderRadius: '10px',
+                                    // border:'4px solid #A85DF4' 
+                                    }}>
+                                    <Card 
+                                    //style={{backgroundColor: 'hsla(0, 0%, 100%, 0.5)'}}
+                                    style={{ 
+                                        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                                        backdropFilter: 'blur(10px)', 
+                                        padding: '20px',
+                                        borderRadius: '10px', 
+                                        boxShadow: '0 0 5px rgba(255, 255, 255, 0.5)' 
+                                    }}
+                                    >
+                                        <CardBody >
+                                            <h4 className=" text-center card-title " style={{ fontWeight: 'semi-bold', color:"#fff" }}>BOARD EXPLORER </h4>
+                                            <p className="card-title-desc"></p>
+                                            <FormGroup className="mb-4 ms-2">
+                                         
+                                                <SearchBoards/>
+                                                <div className="p-3">
+                                                <Row className="justify-content-center">
+                                                    <p className="text-center">OR</p>  
+                                                </Row>
+                                                <Row className="justify-content-center">
+                                                  <Button
+                                                   type="button"
+                                                   className="m-btn m-btn-4 w-60 m-2"
+                                                   style={{ backgroundColor: "#4A2FBE"}}
+                                                   onClick={handlemapbutton}
+                                                   >
+                                                  {buttoncontent}
+                                                  </Button>
+                                                </Row>
+                                                </div>
+                                                {showmap &&
+                                                <div className="mb-4 ms-2">
+                                                    
+                                                      {/* <Row>
+                                                 <AddressSuggestionsSource
+                                                  onSourceAddressChange={setSourceAddress}/>
+                                                 {console.log("sourceAddress--->",sourceAddress)}
+                                                      </Row> */}
+                                                      
+                                                      <Client/>
+                                                </div>
+                                               }
+                                            </FormGroup>
+    
+                                        </CardBody>
+                                    </Card>
+                                    </div>
+                                </Col>
+                            </Row>
+                        
+    
+    
+                        {usrRole == "Broker" && (
+                            <>
+                                <Container fluid={true} className="black-bg">
+                                    <br></br>
+                                    <Row>
+                                        {data.map((f, i) => {
+                                            return <RecordCardCarrier key={f} ID={f.carrier_id} DeliveryDate={f.carrier_mot_delivery_date} MotID={f.carrier_mot_id} distance={f.carrier_mot_total_distance} type={f.carrier_mot_equipment_type} destination={f.carrier_mot_destination
+                                            } origin={f.carrier_mot_origin} Date={f.carrier_mot_pickup_date} Timestamp={f.carrier_mot_created_timestamp} />
+                                        })}
+                                    </Row>
+                                    <Row>
+                                        <Col xs="12">
+                                        </Col>
+                                    </Row>
+                                </Container>
+                            </>
+                        )}
+    
+                        {usrRole == "Carrier" && (
+                            <>
+                                <Container fluid={true} className="black-bg">
+                                    <br></br>
+                                    <Row>
+                                        {data.map((e, i) => {
+                                            return <RecordCardBroker key={e} IDName={e.broker_id} pickupdates={e.broker_load_pickup_date} origin={e.broker_load_origin} IDLoad={e.broker_load_id} Timestamps={e.broker_load_created_timestamp} delivery={e.broker_load_delivery_date} load={e.broker_load_equipment_type} weight={e.broker_load_weight}
+                                                destinations={e.broker_load_destination} commodity={e.broker_load_commodity} Distances={e.broker_load_distance} rates={e.broker_load_rate} addition={e.broker_load_additional_requirements} />
+    
+                                        })}
+                                    </Row>
+                                    <Row>
+                                        <Col xs="12">
+                                        </Col>
+                                    </Row>
+                                </Container>
+                            </>
+                        )}
+                        
+                    </Container>
                 
             </React.Fragment>
         </>

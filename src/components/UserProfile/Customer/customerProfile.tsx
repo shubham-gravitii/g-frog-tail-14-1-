@@ -361,18 +361,27 @@ const CustomerProfile = () => {
 
   return (
     <>
-      <Container fluid={true} className="header__area black-bg pb-4">
+      <Container fluid={true} className="header__area py-4" style={{
+       //backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url('https://images.pexels.com/photos/192364/pexels-photo-192364.jpeg?auto=compress&cs=tinysrgb&w=600')",
+       backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), url('https://i.pinimg.com/564x/f9/91/52/f99152427167715436079e80e751da8f.jpg')",
+       backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', color: '#ffffff'}}>
         <form onSubmit={handleSubmit}>
           <Row className="justify-content-center align-self-center">
             <Col xs="11" sm="8" md="7" lg="5" xl="4">
-              <Card>
+              <Card style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                backdropFilter: 'blur(10px)', 
+                padding: '20px',
+                borderRadius: '10px', 
+                boxShadow: '0 0 5px rgba(255, 255, 255, 0.5)' 
+              }}>
                 <CardBody>
-                  <h4 className="card-title">Profile details</h4>
+                  <h4 className="card-title text-center">Profile details</h4>
                   <p className="card-title-desc"></p>
                   <FormGroup className="mb-4">
                     <div className="mt-3">
-                      <p className="mb-3 select2-container">
-                        <Label>Role</Label>
+                      <p className="select2-container">
+                        <Label style={{color:"#058283"}}>Role</Label>
                       </p>
 
                       <Input
@@ -385,8 +394,8 @@ const CustomerProfile = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <p className="text-muted m-b-15">
-                        User Name
+                      <p className="text-muted mb-10">
+                      <Label  style={{color:"#058283"}}>User Name</Label>
                       </p>
                       <Input
                         type="text"
@@ -400,8 +409,8 @@ const CustomerProfile = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <p className="text-muted m-b-15">
-                        User Full Name
+                    <p className="text-muted mb-10">
+                      <Label  style={{color:"#058283"}}>User Full Name</Label>
                       </p>
                       <Input
                         type="text"
@@ -415,8 +424,8 @@ const CustomerProfile = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <p className="text-muted m-b-15">
-                        Email ID
+                    <p className="text-muted mb-10">
+                      <Label style={{color:"#058283"}}>Email ID</Label>
                       </p>
                       <Input
                         readOnly={true}
@@ -431,10 +440,10 @@ const CustomerProfile = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <span className="text-muted m-b-15">
-                        <Label>Phone Number</Label>
+                    <p className="text-muted mb-10">
+                        <Label style={{color:"#058283"}}>Phone Number</Label>
                         <p style={{ color: 'red', fontSize: '17px' }}>{phoneNumberError}</p>
-                      </span>
+                      </p>
 
                       <Input
                         type="text"
@@ -452,7 +461,7 @@ const CustomerProfile = () => {
 
                     {/* <div className="mt-3">
                       <p className="text-muted m-b-15">
-                        User ID
+                        <Label style={{color:"#058283"}}>User ID</Label>
                       </p>
                       <Input
                         type="text"

@@ -6,8 +6,14 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 // import "./globals.css";
 import { AuthProvider } from "../contexts/UserContext"
-import { ToastContainer } from 'react-toastify';
 import Footer from '../components/Home/Footer';
+
+//Pop up
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../styles/Aboutanimate.css'
+
+//Amplify
 import { Amplify } from 'aws-amplify';
 import awsconfig from '../amplifyconfiguration.json';
 import "@aws-amplify/ui-react/styles.css";
@@ -15,6 +21,9 @@ Amplify.configure(awsconfig, { ssr: true })
 import { Authenticator } from '@aws-amplify/ui-react';
 import Header from '../components/Home/Header';
 import './index.scss';
+
+//fontawesome icons
+import '@fortawesome/fontawesome-free/css/all.css';
 
 const inter = Inter({ subsets: ["latin"] });
 import 'bootstrap/dist/css/bootstrap.css'

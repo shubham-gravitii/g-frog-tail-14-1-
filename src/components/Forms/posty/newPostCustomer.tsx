@@ -462,11 +462,9 @@ const NewPostCustomer = () => {
 
 
       <div className="section__title-wrapper text-center">
-        <br />
-        <h2 className="section__title">
+        <h2 className="section__title my-4">
           CREATE NEW POST
         </h2>
-        <br />
       </div>
 
       <div style={{ minHeight: "100vh" }} className="white-bg">
