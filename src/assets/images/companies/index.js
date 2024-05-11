@@ -4,8 +4,7 @@ import img3 from "./img-3.png"
 import img4 from "./img-4.png"
 import img5 from "./img-5.png"
 import img6 from "./img-6.png"
-
-export default {
+const exportObject= {
   img1,
   img4,
   img6,
@@ -13,3 +12,5 @@ export default {
   img3,
   img2,
 }
+
+export default exportObject

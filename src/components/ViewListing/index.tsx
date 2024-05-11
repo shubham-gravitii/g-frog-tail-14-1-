@@ -169,6 +169,7 @@ const RateExplorer = () => {
         };
 
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
     const getPostThumbnail = (firstLetter) => {

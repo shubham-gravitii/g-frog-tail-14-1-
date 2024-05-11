@@ -244,6 +244,7 @@ const CustomerProfile = () => {
     } catch (error) {
       console.log(error)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start])
 
   const checkUsernameExists = async (username) => {

@@ -140,20 +140,20 @@ const NewPostOwner = () => {
         setWarehouseRentalFields((prev) => ({ ...prev, ['wh_max_lease']: maxDuration }))
         console.log(maxDuration)
         console.log(warehouseRentalFields)
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [maxDuration])
     useEffect(() => {
         setWarehouseRentalFields((prev) => ({ ...prev, ['wh_min_lease']: minDuration }))
         console.log(minDuration)
         console.log(warehouseRentalFields)
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [minDuration])
     useEffect(() => {
 
         setWarehouseRentalFields((prev) => ({ ...prev, ['wh_notice_period']: noticePeriod }))
         console.log(noticePeriod)
         console.log(warehouseRentalFields)
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [noticePeriod])
 
     useEffect(() => {
@@ -425,55 +425,57 @@ const NewPostOwner = () => {
             setUserExistsDB(true);
 
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ownerDetail]);
 
-    useEffect(() => {
-        // Assuming setloading is a state updater function for loading state
-
-        // setloading(true); // If you're managing loading state, uncomment this line
-
-        const fetchData = async () => {
-            try {
-                //To check if user Exists
-                const id = currentUser.userID;
-                await getOwnerDetails(id);
-
-                //To set the pagination Id we need to fetch the size of table
-                await getRentalDetailRecordsSize();
-                await getBasicDetailRecordsSize();
-                await getSpecificationDetailRecordsSize();
-
-                // setloading(false); // If you're managing loading state, uncomment this line
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                // Handle error appropriately, e.g., set error state or display an error message
-            }
-        };
-
-        fetchData();
-
-
-    }, []);
     // useEffect(() => {
-    //     // setloading(true)
-    //     try {
-    //         //To check if user Exists
-    //         const fetchOwenrDetails = async () => {
-    //             const id = currentUser.userID
-    //             await getOwnerDetails(id);
+    //     // Assuming setloading is a state updater function for loading state
+
+    //     // setloading(true); // If you're managing loading state, uncomment this line
+
+    //     const fetchData = async () => {
+    //         try {
+    //             //To check if user Exists
+    //             const id = currentUser.userID;
+    //             // await getOwnerDetails(id);
+
+    //             // //To set the pagination Id we need to fetch the size of table
+    //             // await getRentalDetailRecordsSize();
+    //             // await getBasicDetailRecordsSize();
+    //             // await getSpecificationDetailRecordsSize();
+
+    //             // setloading(false); // If you're managing loading state, uncomment this line
+    //         } catch (error) {
+    //             console.error('Error fetching data:', error);
+    //             // Handle error appropriately, e.g., set error state or display an error message
     //         }
-    //         fetchOwenrDetails();
+    //     };
+
+    //     fetchData();
 
 
-    //         //To set the pagination Id we need to fetch the size of table
-    //         getRentalDetailRecordsSize();
-    //         getBasicDetailRecordsSize();
-    //         getSpecificationDetailRecordsSize();
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    //     // setloading(false)
-    // }, [])
+    // }, []);
+    useEffect(() => {
+        // setloading(true)
+        try {
+            //To check if user Exists
+            const fetchOwnerDetails = async () => {
+                const id = currentUser.userID
+                await getOwnerDetails(id);
+            }
+            fetchOwnerDetails();
+
+
+            //To set the pagination Id we need to fetch the size of table
+            getRentalDetailRecordsSize();
+            getBasicDetailRecordsSize();
+            getSpecificationDetailRecordsSize();
+        } catch (error) {
+            console.log(error)
+        }
+        // setloading(false)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const handleBasicWarehouseChange = (e: any) => {
         const { name, value } = e.target;
@@ -539,14 +541,14 @@ const NewPostOwner = () => {
 
     //Images Processing Section
 
-    const imageUploadBackend = async (compressedFile) => {
+    const imageUploadBackend = async (compressedFile,fileExtension) => {
         try {
             console.log(compressedFile)
             const formData = new FormData();
             formData.append('file', compressedFile);
 
             const response = await axios.post(
-                Constants.local_api_gateway_host + '/imageCID',
+                Constants.local_api_gateway_host + '/imageCID/?fileExtension='+fileExtension,
                 formData,
                 {
                     headers: {
@@ -555,13 +557,66 @@ const NewPostOwner = () => {
                     },
                 }
             );
-
-            return response.data.cid;
+            console.log("image cid response")
+            console.log(response)
+            return response.data.res;
         } catch (error) {
-            console.error('Error uploading image:', error);
+            console.error('Error uploading image:', error.message);
             throw error;
         }
     };
+    // const imageUploadBackend = async (compressedFile, fileType) => {
+    //     try {
+    //         console.log(compressedFile);
+    //         const formData = new FormData();
+    
+    //         let filename = 'filename'; // Default filename
+    //         let mimeType = 'application/octet-stream'; // Default MIME type
+    
+    //         // Set filename and MIME type based on the provided fileType
+    //         if (fileType === 'png') {
+    //             filename += '.png';
+    //             mimeType = 'image/png';
+    //         } else if (fileType === 'jpeg' || fileType === 'jpg') {
+    //             filename += '.jpg';
+    //             mimeType = 'image/jpeg';
+    //         }
+    
+    //         if (typeof compressedFile === 'string') {
+    //             // Convert from Base64 to Blob if compressedFile is a Base64 string
+    //             const byteCharacters = atob(compressedFile);
+    //             const byteNumbers = new Array(byteCharacters.length);
+    //             for (let i = 0; i < byteCharacters.length; i++) {
+    //                 byteNumbers[i] = byteCharacters.charCodeAt(i);
+    //             }
+    //             const byteArray = new Uint8Array(byteNumbers);
+    //             const blob = new Blob([byteArray], { type: mimeType });
+    
+    //             formData.append('file', blob, filename);
+    //         } else {
+    //             // If compressedFile is already a Buffer or Blob
+    //             formData.append('file', compressedFile, filename);
+    //         }
+    
+    //         const response = await axios.post(
+    //             Constants.local_api_gateway_host + '/imageCID',
+    //             formData,
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'multipart/form-data',
+    //                     Accept: '/',
+    //                 },
+    //             }
+    //         );
+    
+    //         console.log("image cid response");
+    //         console.log(response);
+    //         return response.data.res;
+    //     } catch (error) {
+    //         console.error('Error uploading image:', error.message);
+    //         throw error;
+    //     }
+    // };
 
     const storeImageDetailsWeb3 = async (cid) => {
         const { wh_id, owner_entity_id } = warehouseFields;
@@ -599,32 +654,43 @@ const NewPostOwner = () => {
             console.error('Error storing image details:', error);
         }
     };
-
+    function getExtension(filename) {
+        return filename.split('.').pop()
+      }
     const compressAndUploadImages = async () => {
         const newCids = [];
+        console.log("compressAndUpload")
         console.log(newImages);
 
         for (const selectedImage of newImages) {
             if (selectedImage) {
                 try {
+                    console.log("Try")
+                    console.log(selectedImage)
                     const formData = new FormData();
                     formData.append('image', selectedImage);
                     const response = await fetch(Constants.local_api_gateway_host + '/compressImages', {
                         method: 'POST',
                         body: formData,
                     });
-                    await fetch(Constants.local_api_gateway_host + '/test', {
-                        method: 'POST',
-                        body: formData,
-                    })
+                    const fileExtension=getExtension(selectedImage["name"]);
 
+                    // const data=await response.json();
+
+                    console.log("TryResponse")
+                    console.log(response)
+                    // console.log(data)
                     if (response.ok) {
                         const blob = await response.blob();
-
+                        
                         const compressedFile = new File([blob], selectedImage.name);
-
+                        // const compressedFile=response.data
+                        console.log("blob")
+                        // console.log(blob)
+                        console.log(compressedFile)
                         // const client = makeStorageClient();
-                        const cid = await imageUploadBackend(compressedFile);
+                        const cid = await imageUploadBackend(compressedFile,fileExtension);
+                        console.log("Compressed image cid")
                         console.log(cid)
                         // await storeImageDetailsWeb3(cid);
 
@@ -636,7 +702,7 @@ const NewPostOwner = () => {
                         return Promise.reject('Error uploading image');
                     }
                 } catch (error) {
-                    console.error('Error uploading image:', error);
+                    console.error('Error uploading the image:', error);
                     notifyError("Error updating warehouse data")
 
                     return;
@@ -744,12 +810,12 @@ const NewPostOwner = () => {
         }
         warehouseSpecificationFields.wh_id = warehouseFields.wh_id
 
-        console.table(warehouseFields)
-        console.table(warehouseRentalFields)
-        console.table(warehouseSpecificationFields)
+        // console.table(warehouseFields)
+        // console.table(warehouseRentalFields)
+        // console.table(warehouseSpecificationFields)
 
 
-        //Cheking for empty fields
+        //Checking for empty fields
         const optionalWarehouseFields = ['wh_gps_coordinates', 'wh_address', 'pagination_id', 'wh_geom', 'thumbnail_cid', 'longitude', 'latitude'];
         const optionalWarehouseRentalFields = ['thumbnail_cid', 'pagination_id'];
         const optionalWarehouseSpecificationFields = ['pagination_id', 'thumbnail_cid'];
@@ -759,23 +825,23 @@ const NewPostOwner = () => {
         const emptyWarehouseSpecificationFields = getEmptyFields(warehouseSpecificationFields, optionalWarehouseSpecificationFields);
 
 
-        // if (emptyWarehouseFields.length > 0) {
-        //     notifyInfo(`Empty fields in warehouseFields: ${emptyWarehouseFields.join(', ')}`);
-        //     setLoading(false)
-        //     return;
-        // }
+        if (emptyWarehouseFields.length > 0) {
+            notifyInfo(`Empty fields in warehouseFields: ${emptyWarehouseFields.join(', ')}`);
+            setLoading(false)
+            return;
+        }
 
-        // if (emptyWarehouseRentalFields.length > 0) {
-        //     notifyInfo(`Empty fields in warehouseRentalFields: ${emptyWarehouseRentalFields.join(', ')}`);
-        //     setLoading(false)
-        //     return;
-        // }
+        if (emptyWarehouseRentalFields.length > 0) {
+            notifyInfo(`Empty fields in warehouseRentalFields: ${emptyWarehouseRentalFields.join(', ')}`);
+            setLoading(false)
+            return;
+        }
 
-        // if (emptyWarehouseSpecificationFields.length > 0) {
-        //     notifyInfo(`Empty fields in warehouseSpecificationFields: ${emptyWarehouseSpecificationFields.join(', ')}`);
-        //     setLoading(false)
-        //     return;
-        // }
+        if (emptyWarehouseSpecificationFields.length > 0) {
+            notifyInfo(`Empty fields in warehouseSpecificationFields: ${emptyWarehouseSpecificationFields.join(', ')}`);
+            setLoading(false)
+            return;
+        }
 
         notifyInfo("Your Details will be updated soon")
 
@@ -784,7 +850,6 @@ const NewPostOwner = () => {
             //compressAndUploadImages();
             const thumbnailCID = await compressAndUploadImages();
             console.log(thumbnailCID)
-
             if (thumbnailCID && thumbnailCID[0] !== undefined) {
                 warehouseFields.thumbnail_cid = thumbnailCID[0];
                 warehouseRentalFields.thumbnail_cid = thumbnailCID[0]
@@ -804,9 +869,12 @@ const NewPostOwner = () => {
             console.log(warehouseFields)
 
             const updatedBasicDetails = "&WH_NAME=" + warehouseFields.wh_name + "&WH_TOTAL_SPACE=" + warehouseFields.wh_total_space + "&WH_LAND_AREA="
-                + warehouseFields.wh_land_area + "&WH_ADDRESS=" + warehouseFields.wh_address + "&WH_TYPE=" + warehouseFields.wh_type + "&latitude=" + warehouseFields.latitude
+                + warehouseFields.wh_land_area + "&WH_ADDRESS=" + warehouseFields.wh_address + "&WH_TYPE=" + warehouseFields.wh_type + "&latitude=" + "11"
+                //  warehouseFields.latitude
                 + "&WH_ID_CREATED_TIMESTAMP=" + warehouseFields.wh_id_created_timestamp + "&OWNER_ENTITY_ID=" + warehouseFields.owner_entity_id
-                + "&longitude=" + warehouseFields.longitude + "&PAGINATION_ID=" + warehouseFields.pagination_id + "&THUMBNAIL_CID=" + warehouseFields.thumbnail_cid
+                + "&longitude=" + "11"
+                // warehouseFields.longitude
+                 + "&PAGINATION_ID=" + warehouseFields.pagination_id + "&THUMBNAIL_CID=" + warehouseFields.thumbnail_cid
                 + "&IS_VERIFIED=" + Constants.isVerified + "&IS_ACTIVE=" + Constants.isActive;
 
             const updatedRentalDetails = "&WH_ID=" + warehouseRentalFields.wh_id + "&WH_RENTAL_AVAILABLE_DATE=" + warehouseRentalFields.wh_rental_available_date
@@ -819,7 +887,7 @@ const NewPostOwner = () => {
 
             const updatedSpecificationDetails = "&WH_ROOF_HEIGHT=" + warehouseSpecificationFields.wh_roof_height + "&WH_ROOF_TYPE=" + warehouseSpecificationFields.wh_roof_type
                 + "&WH_ELECTRICAL=" + warehouseSpecificationFields.wh_electrical + "&WH_FLOORING_TYPE=" + warehouseSpecificationFields.wh_flooring_type
-                + "&WH_LOADING_DOCK_COUNT=" + warehouseSpecificationFields.wh_loading_dock_count + "&WH_LOADING_DOCK_HEIGHT=" + warehouseSpecificationFields.wh_loading_dock_height
+                + "&WH_LOADING_DOCK_COUNT=" + warehouseSpecificationFields.wh_loading_dock_count + "&WH_LOADING_DOCK_HEIGHT=" + "11"
                 + "&WH_LOADING_DOCK_SIZE=" + warehouseSpecificationFields.wh_loading_dock_size + "&WH_AGE=" + warehouseSpecificationFields.wh_age + "&PAGINATION_ID=" + warehouseSpecificationFields.pagination_id
                 + "&WH_HVAC=" + warehouseSpecificationFields.wh_hvac + "&IS_VERIFIED=" + Constants.isVerified + "&IS_ACTIVE=" + Constants.isActive;
 
@@ -875,7 +943,7 @@ const NewPostOwner = () => {
                     // notifyError("Error updating warehouse data")
                     console.error('Error updating warehouse data:', error);
                 });
-            // router.push("/ViewListing");
+            router.push("/ViewListing");
 
         } catch (error) {
             console.log("try error");

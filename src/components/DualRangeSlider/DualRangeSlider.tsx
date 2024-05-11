@@ -40,6 +40,7 @@ const DualRangeSlider = ({ min, max, onChange }) => {
   // Get min and max values when their state changes
   useEffect(() => {
     onChange({ min: minVal, max: maxVal });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [minVal, maxVal]);
 
   return (

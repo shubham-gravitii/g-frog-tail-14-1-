@@ -128,7 +128,6 @@ const NewSidebar = () => {
                           <div className="single_link option iconAdd">
                             <li>
                               <Link href="/ViewPost" onClick={handleLinkClick}
-                              onClick={handleLinkClick}
                               style={{ color: "white", textDecoration:"none" }}>
                                 {/* <a> */}
                                  <AiOutlineCopy /> View Post

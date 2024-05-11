@@ -19,6 +19,7 @@ const withAuth = (WrappedComponent, allowedRoles) => {
         if (!allowedRoles.includes(userRole)) {
           router.push('/unauthorized'); 
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
   
       return <WrappedComponent {...props} />;

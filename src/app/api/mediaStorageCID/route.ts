@@ -1,12 +1,15 @@
 //@ts-nocheck
 // import { getSession } from 'next-auth/react';
 import axios from "axios";
-import * as Constants from "../../utils/constants";
-import { fetchApiSettings } from '../../utils/ssm';
+import * as Constants from "../../../utils/constants";
+import { fetchApiSettings } from '../../../utils/ssm';
 import { NextResponse } from "next/server";
-export async function GET(data, req, res, apiKey, apiGatewayHost) {
+export async function GET(req, res) {
+  console.log("mediaStorageCID get")
+  const dataReq = new URLSearchParams(req.nextUrl.searchParams);
+  const data = Object.fromEntries(dataReq.entries());
     const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
-
+  console.log(data)
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
@@ -27,7 +30,10 @@ export async function GET(data, req, res, apiKey, apiGatewayHost) {
   
 }
 
-export async function POST(data, req, res, apiKey, apiGatewayHost) {
+export async function POST(req, res) {
+  console.log("mediaStorageCID post")
+  const dataReq = new URLSearchParams(req.nextUrl.searchParams);
+  const data = Object.fromEntries(dataReq.entries());
     const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
 
   const updatedString =
@@ -63,11 +69,11 @@ export async function POST(data, req, res, apiKey, apiGatewayHost) {
       headers: headers,
     }
   );
-  const newData = response.data;
+  const newData = response.data.response;
 
   console.log(newData);
 
-  res.send(newData);
+  return   NextResponse.json({response:newData},{status:200})
 }
 
 async function handlePut(data, req, res, apiKey, apiGatewayHost) {

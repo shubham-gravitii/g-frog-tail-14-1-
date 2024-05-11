@@ -1589,7 +1589,7 @@ const NewPost = () => {
       setOwnerEntityId("GWO-" + currentUser.userID?.toString().substring(0, 26))) : ('')
 
 
-
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1603,7 +1603,7 @@ const NewPost = () => {
       setWalletAddress(currentUser.userID),
       setOwnerId("GWO-" + currentUser.userID?.toString().substring(0, 26)),
       setOwnerEntityId("GWO-" + currentUser.userID?.toString().substring(0, 26))) : ('')
-
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

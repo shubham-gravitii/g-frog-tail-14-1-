@@ -120,6 +120,7 @@ const CustomerViewOwnPost = () => {
 
         fetchData();
         setIsLoading(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, currentUser, customerId]);
 
     const handlePublish = (str: string) => {

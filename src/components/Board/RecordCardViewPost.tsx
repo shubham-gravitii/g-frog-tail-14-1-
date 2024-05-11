@@ -180,7 +180,14 @@ console.log(RentalFields)
             const response = await axios.get(
                 Constants.local_api_gateway_host + '/imageCID?cid=' + cidnumber,
             );
-            setThumbnail(response.data.url);
+            console.log(response)
+            if(response.status==500){
+                setThumbnail(defaulThumbnail)
+            }
+            else{
+
+                setThumbnail(response.data.url);
+            }
             setThumnailLoading(false);
 
         } catch (error) {
@@ -200,6 +207,7 @@ console.log(RentalFields)
         } catch (error) {
             console.log(error)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const openImageInNewTab = (url) => {

@@ -37,6 +37,7 @@ const Board = ({onSearch}) => {
       }
         useEffect(()=>{
         getRecords()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
      },[])
 
 

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useEffect, useState } from "react"
 import { Web3Storage } from 'web3.storage'
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry"
@@ -64,7 +65,9 @@ const Reactcollage = () => {
     //     console.log("images " + images);
     // }
 
-    useEffect(() => { imagesarray.forEach(getimages) }, [])
+    useEffect(() => { imagesarray.forEach(getimages) 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const viewImage = (img, i) => {
         setdata({ img, i });

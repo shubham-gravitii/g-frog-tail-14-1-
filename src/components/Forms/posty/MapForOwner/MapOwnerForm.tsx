@@ -36,6 +36,7 @@ const Mapplsmap = ({ Lattitude, Longitude ,Address,onChildData }) => {
     console.log("Longitude:", Longitude);
     console.log("Center:", center);
     setcenter({ lat: parseFloat(Lattitude), lng: parseFloat(Longitude) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Lattitude, Longitude]);
   
 

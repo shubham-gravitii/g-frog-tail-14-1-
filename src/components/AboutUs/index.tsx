@@ -381,7 +381,7 @@ const About = () => {
                         <div className="item features-image col-12 col-md-6 col-lg-3 d-flex flex-column justify-content-center align-items-center">
                             <div className="item-wrapper">
                                 <div className="item-img mb-3 ">
-                                    <img src={profile.src} className='rounded-5 rounded-circle hover-zoom' />
+                                    <img src={profile.src} alt="profile pic" className='rounded-5 rounded-circle hover-zoom' />
                                 </div>
                                 <div className="item-content align-left">
                                     <h6 className="item-subtitle text-center display-5">

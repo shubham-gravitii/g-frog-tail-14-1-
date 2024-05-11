@@ -36,6 +36,8 @@ export async function GET(req, res) {
 }
 
 export async function POST(req, res) {
+  console.log("requirement details post start")
+
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
   const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } = await fetchApiSettings();
@@ -72,6 +74,7 @@ export async function POST(req, res) {
 
     const newData = response.data.response;
     console.log(newData);
+    console.log("requirement details post end")
 
     return NextResponse.json({ response: newData }, { status: 200 });
 } catch (error) {

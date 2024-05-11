@@ -248,7 +248,7 @@ const ViewPost = () => {
 
         }
         setIsLoading(false);
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
@@ -277,7 +277,7 @@ const ViewPost = () => {
         } catch (error) {
         }
         setIsLoading(false);
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, paginationId]);
 
 

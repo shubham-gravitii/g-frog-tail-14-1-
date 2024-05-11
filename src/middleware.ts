@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest, response: NextResponse) {
       //   NextResponse.json({"message":"Good try"},{status:400})
       //   console.log("json send")
       // }
+      
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
@@ -58,8 +59,21 @@ export async function middleware(request: NextRequest, response: NextResponse) {
 
 export const config = {
   matcher: [
-    "/api/:path*",
-    "/private",
+    "/api/:path*",  
+    "/api/imageCID",
+    "/api/ownerDetails",
+    "/api/customerDetails",
+    "/api/rentalDetails",
+    "/api/requirementsDetails",
+    "/api/specificationDetails",
+    "/api/userProfile",
+    "/api/imageCID",
+    "/api/basicDetails",
+    "/ViewOwnPost",
+    "/ViewPost",
+    "/ViewListing",
+    "/posty",
+    "/create-profile"
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)

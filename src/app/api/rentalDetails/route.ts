@@ -38,30 +38,31 @@ export async function GET(req, res) {
 }
 
 export async function POST(req, res) {
+  console.log("rental details post start")
   const dataReq = new URLSearchParams(req.nextUrl.searchParams);
   const data = Object.fromEntries(dataReq.entries());
   console.log("rental details post request")
-
+  
   const { apiKey, apiGatewayHost, apiKeyMedia, apiGatewayHostMedia } =
-    await fetchApiSettings();
+  await fetchApiSettings();
   console.log(data);
-
+  
   const headers = {
     accept: "application/json",
     "x-api-key": apiKey,
   };
-
+  
   let isFirstParam = true;
   let updatedRentalDetails = "";
-
+  
   for (const key in data) {
     if (data[key]) {
       updatedRentalDetails +=
-        (isFirstParam ? "?" : "&") + `${key.toUpperCase()}=${data[key]}`;
+      (isFirstParam ? "?" : "&") + `${key.toUpperCase()}=${data[key]}`;
       isFirstParam = false;
     }
   }
-
+  
   const response = await axios.post(
     `${apiGatewayHost}/wh_rental_information${updatedRentalDetails}`,
     {},
@@ -71,7 +72,8 @@ export async function POST(req, res) {
   );
   const newData = response.data.response;
   
-  return NextResponse({response:newData},{status:200})
+  console.log("rental details post end")
+  return NextResponse.json({response:newData},{status:200})
 }
 
 export async function PUT(req, res) {

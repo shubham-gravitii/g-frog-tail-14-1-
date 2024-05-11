@@ -417,6 +417,7 @@ const NewPostCustomer = () => {
 
     fetchCustomerDetail();
     getPaginationId();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -426,6 +427,7 @@ const NewPostCustomer = () => {
       setUserExistsDB(false);
       notifyInfo("Please complete your profile before creating a post");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerDetail]);
 
 

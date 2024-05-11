@@ -46,6 +46,7 @@ const Mapplsmap = ({Lattitude, Longitude}) => {
     console.log("Longitude:", Longitude);
     console.log("Center:", center);
     setcenter({ lat: parseFloat(Lattitude), lng: parseFloat(Longitude) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Lattitude, Longitude]);
   
   //icons to show on the map of red color and blue color
@@ -79,7 +80,7 @@ const Mapplsmap = ({Lattitude, Longitude}) => {
       setmarkersArray([]);
       markers();
     }
- 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Lattitude, Longitude, radius, center ]);
 
   //two functions used to find distance and put it into proper format
