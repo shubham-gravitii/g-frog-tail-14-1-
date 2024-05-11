@@ -30,7 +30,7 @@ import Footer from '../../components/Home/Footer'
 import { useAuth } from "../../contexts/UserContext";
 import withAuth from "../../utils/urlAuth";
 import GalleryComponentCustomerViewOwnPost from "../../components/Board/RecordCardCustomerViewOwnPost";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import NoPostsFound from "../../components/Common/NoPostsFound";
 
 const RateExplorer = () => {
@@ -50,8 +50,10 @@ const RateExplorer = () => {
     const [paginationId, setpaginationId] = useState(1);
     const [totalPages, setTotalPages] = useState();
     const [showFilters, setShowFilters] = useState(false);
-
-    const userData = router.query.data;                                  //accessing data from search box
+    const searchParams=useSearchParams();
+    
+    // const userData = router.query.data;                                 //accessing data from search box
+    const userData = searchParams.get('data');                                 //accessing data from search box
     const location = userData ? JSON.parse(userData).Location : null;
     // const [datas, setDatas] = useState([])
     const [globalData, setGlobalData] = useState([]);
@@ -104,10 +106,11 @@ const RateExplorer = () => {
 
     //function to search using gis_query
     const getData = async () => {
-        const lattitude = 0;
-        const longitude = 0;
+        let lattitude = 0;
+        let longitude = 0;
         setIsLoading(true);
-        const userData = JSON.parse(router.query.data);
+        
+        const userData = JSON.parse(searchParams.get('data'));
         const location = userData.Location;
         const radius = parseInt(userData.Warehouse_Distance) * 1000;
         console.log(radius);
@@ -166,6 +169,7 @@ const RateExplorer = () => {
         };
 
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
     const getPostThumbnail = (firstLetter) => {

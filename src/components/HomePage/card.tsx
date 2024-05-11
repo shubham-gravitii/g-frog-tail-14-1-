@@ -154,6 +154,7 @@ const GalleryComponentOwnerViewOwnPost = ({ details }) => {
 
     useEffect(() => {
         getThumnail(thumbnail_cid);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 

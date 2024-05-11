@@ -30,6 +30,7 @@ const Client = ({handleGeocoordinates,GPS }) => {
     const coord=GPS.split(" ");
     console.log(coord);
     setGps({lat:parseFloat(coord[1]),lng:parseFloat(coord[0])});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
   const handleSearchText = async (name) => {

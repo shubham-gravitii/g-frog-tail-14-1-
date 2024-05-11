@@ -77,7 +77,7 @@ const OwnerViewOwnPost = () => {
         );
 
         const data = res.data;
-
+        console.log("get record size")
         console.log(data);
 
         const totalCount = data.response[0].count;
@@ -170,6 +170,7 @@ const OwnerViewOwnPost = () => {
     } catch (error) {
       console.log(error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const handleDelete = () => {

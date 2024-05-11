@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/imageCID/route1.js", ".next/types/app/api/addressSearch/route.js", "src/app/api/addressSearch/route.js"],
   "exclude": ["node_modules"]
 }

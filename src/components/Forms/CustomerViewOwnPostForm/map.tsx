@@ -46,6 +46,7 @@ const Mapplsmap = ({ Lattitude, Longitude ,onChildData, handleGeocoordinates,gps
     setLat(Lattitude);
     setLong(Longitude);
     setcenter({ lat: parseFloat(Lattitude), lng: parseFloat(Longitude) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Lattitude, Longitude]);
   
 

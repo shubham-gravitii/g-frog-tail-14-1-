@@ -202,7 +202,7 @@ const NewPostCustomer = () => {
       const res = await axios.get(Constants.local_api_gateway_host + '/requirementDetailsSize');
       console.log("requirementDetailSize")
       console.log(res)
-      const data = res.data.newData;
+      const data = res.data;
       console.log(data);
       const requirement_details_data_count = data.response[0].count;
       console.log(requirement_details_data_count)
@@ -234,11 +234,11 @@ const NewPostCustomer = () => {
     console.table(requirementDetails);
     //Requirements Details
     
-    requirementDetails.requirement_rate=requirementRate;
-    requirementDetails.requirement_duration = requirementDuration;
+    // requirementDetails.requirement_rate=requirementRate;
+    // requirementDetails.requirement_duration = requirementDuration;
     requirementDetails.requirement_start_date = requirementStartDate[0];
     requirementDetails.customer_id = customerId
-    requirementDetails.requirement_area = requirementArea
+    // requirementDetails.requirement_area = requirementArea
 
     requirementDetails.pagination_id = paginationId.toString()
     let coordinates = requirementDetails.wh_gps_coordinates.split(" ");
@@ -249,21 +249,21 @@ const NewPostCustomer = () => {
     const optionalRequirementFields = ['latitude', 'longitude', 'wh_gps_coordinates', 'requirement_location', 'pagination_id', 'customer_id', 'requirement_id_created_timestamp', 'requirement_post_id', 'is_active', 'is_verified'];
 
     const emptyWarehouseFields = getEmptyFields(requirementDetails, optionalRequirementFields);
-
-    if(!requirementRate?.min || !requirementRate?.max || !requirementRate?.unit){
-      notifyInfo("Please fill all budget fields")
-      return;
-    }
+    console.log(requirementRate)
+    // if(!requirementRate?.min || !requirementRate?.max || !requirementRate?.unit){
+    //   notifyInfo("Please fill all budget fields")
+    //   return;
+    // }
     if (emptyWarehouseFields.length > 0) {
       notifyInfo(`Please fill all fields: ${emptyWarehouseFields.join(', ')}`);
       return;
     }
-    if(requirementRate.min>requirementRate.max){
-      notifyInfo("Budget min should be less than max")
-      setrequirementRate(null)
+    // if(requirementRate.min>requirementRate.max){
       
-      return
-    }
+    //   notifyInfo("Budget min should be less than max")
+      
+    //   return
+    // }
 
     notifyInfo("Your Details will be posted soon");
     console.log("Form Submitted");
@@ -309,6 +309,7 @@ const NewPostCustomer = () => {
         requirementDetails.longitude
       "&IS_ACTIVE=" +
         Constants.isActive;
+      requirementDetails.is_active=Constants.isActive;
       console.table(newRequirementDetails);
       console.log("Logging new requirement details")
       const requests = [
@@ -355,18 +356,20 @@ const NewPostCustomer = () => {
         .then((response) => {
           console.log(" response of customer id")
           console.log(response)
-          const userExists = response.data.response.length > 0;
-          const data = response.data.response
+          const userExists = response.data.response?.response.length > 0;
+          const data = response.data.response?.response
           setCustomerDetails(prevUser => ({
             ...prevUser,
             ...data[0]
           })); 
           console.log("Logging customer ID")
           console.log(data[0])
+          console.log(userExists)
           setUserExistsDB(userExists)
           if (userExists) {
-            setCustomerId(response.data.response[0]?.customer_id)
-            console.log(response.data.response[0]?.customer_id)
+            setCustomerId(response.data.response?.response[0]?.customer_id)
+            console.log("customer id")
+            console.log(response.data.response.response[0]?.customer_id)
             console.log(customerId)
           }
           // if (!userExists) {
@@ -383,6 +386,7 @@ const NewPostCustomer = () => {
   const handleRequirementRate=(e)=>{
     setrequirementRate(p=>({...p,[e.target.name]:e.target.value})
     )
+    console.log(requirementRate)
   }
   const checkAllDetailsOfCustomer = () => {
     console.log(customerDetail)
@@ -413,6 +417,7 @@ const NewPostCustomer = () => {
 
     fetchCustomerDetail();
     getPaginationId();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -422,6 +427,7 @@ const NewPostCustomer = () => {
       setUserExistsDB(false);
       notifyInfo("Please complete your profile before creating a post");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerDetail]);
 
 
@@ -564,11 +570,11 @@ const NewPostCustomer = () => {
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <p className='mb-3 select2-container'>
-                    <Form.Label>Budget <Overlays message={"Enter the range of your budget"} />
+                    <Form.Label>Max Available Budget (in INR) <Overlays message={"Enter the max available budget in Indian Rupee"} />
                     </Form.Label>
                   </p>
                   <Row>
-                    <Col>
+                    {/* <Col>
                       <Form.Control
                         placeholder="Min Budget/Rent "
                         type="number"
@@ -585,7 +591,7 @@ const NewPostCustomer = () => {
                         id="requirement_rate"
                         required
                       />
-                    </Col>
+                    </Col> */}
                     <Col>
                       <Form.Control
                         placeholder="Max Budget/Rent "
@@ -597,16 +603,18 @@ const NewPostCustomer = () => {
                           if(e.target.value<0){
                             e.target.value=''
                           }
-                          handleRequirementRate(e)
+                          // handleRequirementRate(e)
+                          handleRequirementDetailsChange(e);
+                          console.log(requirementDetails)
                         }}
-                        name="max"
+                        name="requirement_rate"
                         id="requirement_rate"
                       />
                     </Col>
-                    <Col >
+                    {/* <Col >
                       <Select
                         closeMenuOnSelect={true}
-                        placeholder="Unit"
+                        placeholder="INR"
 
                         // isMulti
                         options={[
@@ -620,7 +628,7 @@ const NewPostCustomer = () => {
                         }}
 
                       />
-                    </Col>
+                    </Col> */}
                   </Row>
                 </Form.Group>
 
@@ -650,7 +658,7 @@ const NewPostCustomer = () => {
 
                 <Form.Group className="mb-3">
                   <p className='mb-3 select2-container'>
-                    <Form.Label>Requirement Area
+                    <Form.Label>Requirement Area (in sqft)
                       {/* <Overlays message={"From 1-10 scale"} /> */}
                     </Form.Label>
                   </p>
@@ -662,13 +670,14 @@ const NewPostCustomer = () => {
                         maxLength={6}
                         defaultValue={requirementArea?.area}
                         onChange={(e) => {
-                          setRequirementArea((prev) => ({ ...prev, ['area']: e.target.value }))
+                          handleRequirementDetailsChange(e);
+                          // setRequirementArea((prev) => ({ ...prev, ['area']: e.target.value }))
                         }}
                         name="requirement_area"
                         id="requirement_area"
                       />
                     </Col>
-                    <Col >
+                    {/* <Col >
                       <Select
                         closeMenuOnSelect={true}
                         placeholder="Select..."
@@ -685,7 +694,7 @@ const NewPostCustomer = () => {
                         }}
 
                       />
-                    </Col>
+                    </Col> */}
                   </Row>
                 </Form.Group>
 
@@ -740,7 +749,7 @@ const NewPostCustomer = () => {
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <p className='mb-3 select2-container'>
-                    <Form.Label>Required Duration
+                    <Form.Label>Required Duration (in Days)
                       {/* <Overlays message={"From 1-10 scale"} /> */}
                     </Form.Label>
                   </p>
@@ -755,14 +764,15 @@ const NewPostCustomer = () => {
                           if (e.target.value < 0) {
                             e.target.value = '';
                           }
-                          setRequirementDuration((prev) => ({ ...prev, ["duration"]: e.target.value }))
-                          console.log(requirementDuration)
+                          handleRequirementDetailsChange(e);
+                          // setRequirementDuration((prev) => ({ ...prev, ["duration"]: e.target.value }))
+                          // console.log(requirementDuration)
                         }}
                         name="requirement_duration"
                         id="requirement_age"
                       />
                     </Col>
-                    <Col >
+                    {/* <Col >
                       <Select
                         closeMenuOnSelect={true}
                         placeholder="Unit"
@@ -779,7 +789,7 @@ const NewPostCustomer = () => {
                         }}
 
                       />
-                    </Col>
+                    </Col> */}
                   </Row>
 
 
@@ -877,7 +887,7 @@ const NewPostCustomer = () => {
               <Button
                 type="submit"
                 className='m-2 btn btn-success'
-                disabled={!userExistsDB}
+                disabled={userExistsDB}
               >
                 Submit
               </Button>

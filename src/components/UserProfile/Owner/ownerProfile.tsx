@@ -110,7 +110,7 @@ const OwnerProfile = () => {
             axios
                 .get(Constants.local_api_gateway_host + `/ownerDetails`)
                 .then((response) => {
-                    const userExists = response.data.response.response.length > 0;
+                    const userExists = response.data.response?.response.length > 0;
                     setUserExistsDB(userExists)
                     console.log(userExists)
 
@@ -258,6 +258,7 @@ const OwnerProfile = () => {
         } catch (error) {
             console.log(error)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [start])
 
 

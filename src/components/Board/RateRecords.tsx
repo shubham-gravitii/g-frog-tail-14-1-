@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState } from "react"
 import PropTypes from "prop-types"
 import { Card, CardBody, Container, Col, Row, UncontrolledTooltip, Button, Modal, ModalHeader, ModalBody } from "reactstrap"
