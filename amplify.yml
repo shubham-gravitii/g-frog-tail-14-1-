@@ -1,0 +1,25 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - env | grep -e G_BADGER_APIKEY >> .env.production
+        - env | grep -e API_GATEWAY_HOST >> .env.production
+        - env | grep -e MAPPLS_CLIENT_ID_1 >> .env.production
+        - env | grep -e MAPPLS_SECRET_ID_1 >> .env.production
+        - env | grep -e MAPPLS_TOKEN_API_URL >> .env.production
+        - env | grep -e OPENCAGE_API_KEY_1 >> .env.production
+        - env | grep -e JWT_SECRET_KEY >> .env.production
+        - npm cache clean --force
+        - npm install --legacy-peer-deps
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+  outputPath: build  # New configuration
